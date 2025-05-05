@@ -1,11 +1,9 @@
 package honce
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/helix"
 	"github.com/hootuu/helix/storage/hpg"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hsys"
@@ -92,23 +90,4 @@ func doOnce(onceCode string, call func() error) error {
 	}
 
 	return nil
-}
-
-func init() {
-	helix.Use(
-		helix.BuildHelix(
-			"honce",
-			func() (context.Context, error) {
-				err := zplt.HelixPgDB().PG().AutoMigrate(&OnceM{})
-				if err != nil {
-					hlog.Err("helix.once.init", zap.Error(err))
-					return nil, err
-				}
-				return nil, nil
-			},
-			func(ctx context.Context) {
-
-			},
-		),
-	)
 }

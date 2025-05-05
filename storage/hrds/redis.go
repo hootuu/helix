@@ -52,7 +52,7 @@ func (cache *Cache) Check() error {
 }
 
 func (cache *Cache) startup() (context.Context, error) {
-	hsys.Info("\n# Connecting to redis [", cache.code, "] ... #")
+	hsys.Info("# Build redis [", cache.code, "] ... #")
 	cache.client = redis.NewClient(&redis.Options{
 		Network:                    hcfg.GetString("redis."+cache.code+".network", ""),
 		Addr:                       hcfg.GetString("redis."+cache.code+".addr", "127.0.0.1:6379"),
@@ -86,7 +86,7 @@ func (cache *Cache) startup() (context.Context, error) {
 		IdentitySuffix:             hcfg.GetString("redis."+cache.code+".identity.suffix", ""),
 		UnstableResp3:              hcfg.GetBool("redis."+cache.code+".unstable.resp3", false),
 	})
-	hsys.Success("# Connecting to redis [", cache.code, "] OK #\n")
+	hsys.Success("# Build redis [", cache.code, "] OK #")
 	return context.Background(), nil
 }
 
