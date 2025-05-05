@@ -30,16 +30,15 @@ func (f *dbFactory) Check(idemCode string) (bool, error) {
 	}()
 	idemM := &IdemM{
 		IdemCode: idemCode,
-		table:    f.tableName(),
 	}
-	exist, err := hpg.Exist[IdemM](zplt.HelixPgDB().PG(), "idem_code = ?", idemM.IdemCode)
+	exist, err := hpg.Exist[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), "idem_code = ?", idemM.IdemCode)
 	if err != nil {
 		return false, err
 	}
 	if exist {
 		return false, nil
 	}
-	err = hpg.Create[IdemM](zplt.HelixPgDB().PG(), idemM)
+	err = hpg.Create[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), idemM)
 	if err != nil {
 		return false, err
 	}
@@ -52,9 +51,7 @@ func newDbFactory(code string, expiration time.Duration, cleanInterval time.Dura
 		expiration:    expiration,
 		cleanInterval: cleanInterval,
 	}
-	err := zplt.HelixPgDB().PG().AutoMigrate(&IdemM{
-		table: f.tableName(),
-	})
+	err := zplt.HelixPgDB().PG().Table(f.tableName()).AutoMigrate(&IdemM{})
 	if err != nil {
 		hlog.Err("hidem.pg.newDbFactory", zap.Error(err))
 		return nil, err
@@ -89,10 +86,9 @@ func (f *dbFactory) clean() {
 		})()
 
 		tx := zplt.HelixPgDB().PG().Unscoped().
+			Table(f.tableName()).
 			Where("created_at < ?", threshold).
-			Delete(&IdemM{
-				table: f.tableName(),
-			})
+			Delete(&IdemM{})
 		if tx.Error != nil {
 			hlog.Err("hidem.pg.clean[ignore]", zap.Error(tx.Error))
 			err = tx.Error
@@ -107,9 +103,4 @@ func (f *dbFactory) clean() {
 type IdemM struct {
 	hpg.Basic
 	IdemCode string `gorm:"column:idem_code;primaryKey;not null;size:128"`
-	table    string `gorm:"-"`
-}
-
-func (m *IdemM) TableName() string {
-	return m.table
 }

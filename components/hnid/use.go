@@ -70,6 +70,7 @@ func (opt *Options) validate() error {
 }
 
 func (opt *Options) SetTimestamp(timestampType TimestampType, useDateFormat bool) *Options {
+	opt.useTimestamp = true
 	opt.timestampType = timestampType
 	opt.timestampUseDateFormat = useDateFormat
 	return opt
@@ -123,7 +124,7 @@ func Each(call func(code string, g Generator)) {
 	}
 }
 
-var gCodeRegexpTpl = `^[0-9][A-Za-z0-9_.-]{0,127}$`
+var gCodeRegexpTpl = `^[A-Za-z0-9_.-]{0,63}$`
 var gCodeRegexp = regexp.MustCompile(gCodeRegexpTpl)
 
 func validateCode(code string) error {

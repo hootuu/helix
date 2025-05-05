@@ -32,6 +32,25 @@ func (cache *Cache) Redis() *redis.Client {
 	return cache.client
 }
 
+func (cache *Cache) Check() error {
+	err := retry.Do(
+		func() error {
+			statusCmd := cache.client.Ping(context.Background())
+			if statusCmd.Err() != nil {
+				hsys.Error("# Connecting to redis [", cache.code, "] error:"+statusCmd.Err().Error()+"#\n")
+				return statusCmd.Err()
+			}
+			return nil
+		},
+		retry.Attempts(3),
+		retry.Delay(3*time.Second),
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (cache *Cache) startup() (context.Context, error) {
 	hsys.Info("\n# Connecting to redis [", cache.code, "] ... #")
 	cache.client = redis.NewClient(&redis.Options{
@@ -67,22 +86,6 @@ func (cache *Cache) startup() (context.Context, error) {
 		IdentitySuffix:             hcfg.GetString("redis."+cache.code+".identity.suffix", ""),
 		UnstableResp3:              hcfg.GetBool("redis."+cache.code+".unstable.resp3", false),
 	})
-	err := retry.Do(
-		func() error {
-			statusCmd := cache.client.Ping(context.Background())
-			if statusCmd.Err() != nil {
-				hsys.Error("# Connecting to redis [", cache.code, "] error:"+statusCmd.Err().Error()+"#\n")
-				return statusCmd.Err()
-			}
-			return nil
-		},
-		retry.Attempts(10),
-		retry.Delay(3*time.Second),
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	hsys.Success("# Connecting to redis [", cache.code, "] OK #\n")
 	return context.Background(), nil
 }

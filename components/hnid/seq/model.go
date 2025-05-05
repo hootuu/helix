@@ -1,11 +1,7 @@
 package seq
 
 import (
-	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/storage/hpg"
-	"github.com/hootuu/hyle/hlog"
-	"github.com/hootuu/hyle/hsys"
-	"go.uber.org/zap"
 )
 
 type SequenceM struct {
@@ -20,12 +16,4 @@ type SequenceM struct {
 
 func (m *SequenceM) TableName() string {
 	return "helix_hnid_seq"
-}
-
-func init() {
-	err := zplt.HelixPgDB().PG().AutoMigrate(&SequenceM{})
-	if err != nil {
-		hlog.Err("helix.hnid.init", zap.Error(err))
-		hsys.Exit(err)
-	}
 }

@@ -29,7 +29,7 @@ func (db *Database) Helix() helix.Helix {
 }
 
 func (db *Database) startup() (context.Context, error) {
-	hsys.Info("\n# Connecting to pg.db [", db.code, "] ... #")
+	hsys.Warn("# Connecting to pg.db [", db.code, "] ... #")
 	err := retry.Do(
 		func() error {
 			var err error
@@ -69,10 +69,10 @@ func (db *Database) startup() (context.Context, error) {
 		retry.Delay(5*time.Second),
 	)
 	if err != nil {
-		hsys.Error("# Connecting to db [", db.code, "] Err:"+err.Error()+"#\n")
+		hsys.Error("# Connecting to db [", db.code, "] Err:"+err.Error()+"#")
 		return nil, err
 	}
-	hsys.Success("# Connecting to db [", db.code, "] OK #\n")
+	hsys.Success("# Connecting to db [", db.code, "] OK #")
 	return context.Background(), nil
 }
 

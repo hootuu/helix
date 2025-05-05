@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	helixRdsCache = "helix"
+	helixRdsCache = "helix_rds"
 )
 
 func HelixRdsCache() *hrds.Cache {

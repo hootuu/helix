@@ -7,3 +7,7 @@ func Use(helix Helix) {
 func Startup() {
 	doStartup()
 }
+
+func OnStartupSuccess(call func()) {
+	gHelixStartupSuccessOn.Add(call)
+}
