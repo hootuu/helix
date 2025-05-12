@@ -5,31 +5,31 @@ import (
 	"github.com/hootuu/hyle/data/hcast"
 	"github.com/hootuu/hyle/herr"
 	"github.com/hootuu/hyle/hio"
+	"github.com/hootuu/hyle/hlog"
+	"go.uber.org/zap"
+	"net/http"
 )
 
-func HelixHandle[REQ any, RESP any](ctx *gin.Context, callback func(req *REQ) (*RESP, *herr.Error)) {
-	ctx.Request.Header.Get()
-	//switch ctx.Request.Method {
-	//case http.MethodPost
-	//}
-	//bodyBytes, nErr := ctx.GetRawData()
-	//if nErr != nil {
-	//	gLogger.Error("get request body data failed", zap.Error(nErr))
-	//	ctx.JSON(
-	//		http.StatusOK,
-	//		rest.FailResponse[any](idx.New(), errors.System("get request body data failed")),
-	//	)
-	//	return
-	//}
-	//req, err := rest.UnmarshalRequest[REQ](bodyBytes)
-	//if err != nil {
-	//	gLogger.Error("unmarshal request failed", zap.Error(err.Native()))
-	//	ctx.JSON(
-	//		http.StatusOK,
-	//		rest.FailResponse[RESP](idx.New(), errors.System("unmarshal request failed")),
-	//	)
-	//	return
-	//}
+func HelixHandle[REQ any, RESP any](ctx *gin.Context, callback func(req *REQ) (*RESP, *herr.Error)) *herr.Error {
+	req, err := reqFromHeader[REQ](ctx)
+	if err != nil {
+		return err
+	}
+	switch ctx.Request.Method {
+	case http.MethodPost:
+	default:
+		return herr.Of(hio.ReqMethodMustBePost, "http method must be POST")
+	}
+	bodyBytes, nErr := ctx.GetRawData()
+	if nErr != nil {
+		hlog.Err("hest.HelixHandle: ctx.GetRawData()", zap.Error(nErr))
+		return herr.Of(hio.ReqParseBodyDataErr, "parse raw data err:"+nErr.Error())
+	}
+	err = req.Unmarshal(bodyBytes)
+	if err != nil {
+		hlog.Err("hest.HelixHandle: req.Unmarshal", zap.Error(err.Native()))
+		return err
+	}
 	//bReqVerified := true
 	//err = Guard(req.GuardID, func(pubKey []byte) {
 	//	innerErr := req.Verify(pubKey)
@@ -70,6 +70,7 @@ func HelixHandle[REQ any, RESP any](ctx *gin.Context, callback func(req *REQ) (*
 	//	)
 	//}
 	//ctx.JSON(http.StatusOK, rest.NewResponse[RESP](req.ID, data))
+	return nil
 }
 
 func reqFromHeader[T any](ctx *gin.Context) (*hio.Request[T], *herr.Error) {
@@ -79,6 +80,9 @@ func reqFromHeader[T any](ctx *gin.Context) (*hio.Request[T], *herr.Error) {
 	req.Timestamp = hcast.ToInt64(ctx.Request.Header.Get(hio.HttpHeaderTimestamp))
 	req.Nonce = hcast.ToInt64(ctx.Request.Header.Get(hio.HttpHeaderNonce))
 	req.Signature = ctx.Request.Header.Get(hio.HttpHeaderSignature)
+	if err := req.PreVerify(); err != nil {
+		return nil, err
+	}
 	return &req, nil
 }
 

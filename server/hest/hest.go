@@ -36,7 +36,8 @@ func (h *Hest) Helix() helix.Helix {
 
 func (h *Hest) init() {
 	ginEngine := gin.New()
-	ginEngine.Use(mid.NewLoggerMid(h.code).Handle())
+	ginEngine.Use(mid.NewLoggerMid(h.code).Handle)
+	ginEngine.Use(mid.ErrHandle)
 	cfgCode := strings.ToLower(h.code)
 	addr := hcfg.GetString(fmt.Sprintf("hest.%s.addr", cfgCode), ":9860")
 	readTimeout := hcfg.GetDuration(fmt.Sprintf("rest.%s.read.timeout", cfgCode), 30*time.Second)

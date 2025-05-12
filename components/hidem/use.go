@@ -58,7 +58,8 @@ func Each(call func(code string, g Factory)) {
 	}
 }
 
-var gFactoryCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,32}$`
+const gFactoryCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,32}$`
+
 var gFactoryCodeRegexp = regexp.MustCompile(gFactoryCodeRegexpTpl)
 
 func CheckFactoryCode(code string) error {
@@ -69,7 +70,8 @@ func CheckFactoryCode(code string) error {
 	return nil
 }
 
-var gIdemCodeRegexpTpl = `^[A-Za-z0-9_.-]{0,127}$`
+const gIdemCodeRegexpTpl = `^[A-Za-z0-9_.-]{0,127}$`
+
 var gIdemCodeRegexp = regexp.MustCompile(gIdemCodeRegexpTpl)
 
 func CheckIdemCode(idemCode string) error {
