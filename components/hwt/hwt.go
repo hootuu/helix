@@ -60,7 +60,7 @@ func (h *Hwt) RefreshIssuing(identity string) (*hio.JwtToken, error) {
 		hlog.Err("hwt.RefreshIssuing: buildToken", zap.Error(err))
 		return nil, err
 	}
-	jwtToken.TokenExpiration = current.Add(h.refreshExp).UnixMilli()
+	jwtToken.RefreshExpiration = current.Add(h.refreshExp).UnixMilli()
 
 	err = hpg.Tx(
 		h.db().PG().Table(buildRefreshTokenTableName(h.Code)),
@@ -80,6 +80,7 @@ func (h *Hwt) RefreshIssuing(identity string) (*hio.JwtToken, error) {
 			model := &RefreshTokenM{
 				RefreshToken: jwtToken.Refresh,
 				Identity:     identity,
+				Code:         h.Code,
 				Expiration:   jwtToken.RefreshExpiration,
 			}
 			err = tx.Create(model).Error

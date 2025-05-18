@@ -8,6 +8,6 @@ func Startup() {
 	doStartup()
 }
 
-func OnStartupSuccess(call func()) {
+func AfterStartup(call func()) {
 	gHelixStartupSuccessOn.Add(call)
 }

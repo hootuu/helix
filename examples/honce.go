@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	helix.OnStartupSuccess(func() {
+	helix.AfterStartup(func() {
 		result := ""
 		err := honce.Do(fmt.Sprintf("examples.do.%d", time.Now().Unix()), func() error {
 			result = "one"

@@ -27,7 +27,7 @@ func main() {
 		})
 		helix.Use(h)
 	}()
-	helix.OnStartupSuccess(func() {
+	helix.AfterStartup(func() {
 		for i := 0; i < 20; i++ {
 			id := uidGenerator.Next()
 			fmt.Println(hjson.MustToString(id))

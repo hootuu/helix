@@ -10,7 +10,7 @@ import (
 
 func main() {
 
-	helix.OnStartupSuccess(func() {
+	helix.AfterStartup(func() {
 		srcData := []byte("example.hvault")
 		enData, err := hvault.Encrypt(srcData)
 		if err != nil {

@@ -1,15 +1,17 @@
 package sattva
 
-import "github.com/hootuu/hyle/data/dict"
+import "github.com/hootuu/helix/components/sattva/channel"
 
-type AuthType string
+type Identification = string
 
-type AuthInfo struct {
-	AuthType AuthType
-	Paras    dict.Dict
-}
+const IdNil = ""
 
-type Authenticator interface {
-	GetType() AuthType
-	Authenticate(dict dict.Dict) (bool, error)
-}
+const (
+	Mobile   channel.Type = 100
+	Password channel.Type = 101
+	Email    channel.Type = 103
+	WeChat   channel.Type = 201
+	AliPay   channel.Type = 202
+)
+
+type Channel = channel.Channel

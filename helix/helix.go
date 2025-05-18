@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -34,6 +35,18 @@ func BuildHelix(
 		shutdown: shutdown,
 		ctx:      nil,
 	}
+}
+
+const gCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,15}$`
+
+var gCodeRegexp = regexp.MustCompile(gCodeRegexpTpl)
+
+func CheckCode(code string) error {
+	matched := gCodeRegexp.MatchString(code)
+	if !matched {
+		return errors.New("invalid helix code[" + gCodeRegexpTpl + "]: " + code)
+	}
+	return nil
 }
 
 var gHelixBeenStartup = false

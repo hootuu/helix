@@ -18,6 +18,16 @@ func Exist[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) (bool, 
 	return b, nil
 }
 
+func ExistWithTable(dbTx *gorm.DB, query interface{}, args ...interface{}) (bool, error) {
+	var b bool
+	tx := dbTx.Select("1").Where(query, args...).Limit(1).Find(&b)
+	if tx.Error != nil {
+		hlog.Err("hpg.ExistWithTable", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
+		return false, errors.New("db.exist error:" + tx.Error.Error())
+	}
+	return b, nil
+}
+
 func Get[T any](dbTx *gorm.DB, query string, cond ...interface{}) (*T, error) {
 	var m T
 	var arr []*T

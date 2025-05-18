@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	helix.OnStartupSuccess(func() {
+	helix.AfterStartup(func() {
 		idemFactory, err := hidem.NewDbFactory("example_order", 30*time.Minute, 5*time.Minute)
 		if err != nil {
 			fmt.Println(err)

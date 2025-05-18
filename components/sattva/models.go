@@ -1,29 +1,30 @@
 package sattva
 
 import (
+	"github.com/hootuu/helix/components/sattva/channel"
 	"github.com/hootuu/helix/storage/hpg"
 	"gorm.io/datatypes"
-	"strings"
 )
 
-type IdentityM struct {
+type IdentificationM struct {
 	hpg.Basic
-	ID       string `gorm:"column:id;primaryKey;not null;size:32"`
-	Nickname string `gorm:"column:nickname;not null;size:32"`
-	Avatar   string `gorm:"column:avatar;not null;size:200"`
+	ID   string         `gorm:"column:id;primaryKey;not null;size:32"`
+	Info datatypes.JSON `gorm:"type:jsonb;"`
 }
 
-func buildIdentityTableName(code string) string {
-	return "helix_hwt_" + strings.ToLower(code) + "_identity"
+func (model *IdentificationM) TableName() string {
+	return "helix_sattva_uni_identification"
 }
 
-type AuthenticatorM struct {
+type ChannelM struct {
 	hpg.Basic
-	ID       string         `gorm:"column:id;uniqueIndex:uk_id_type;not null;size:32"`
-	AuthType AuthType       `gorm:"column:auth_type;uniqueIndex:uk_id_type;not null;size:16"`
-	Data     datatypes.JSON `gorm:"type:jsonb;"`
+	ID        channel.ID     `gorm:"column:id;primaryKey;not null;size:32"`
+	Type      channel.Type   `gorm:"column:channel_type;"`
+	Code      string         `gorm:"column:channel_code;not null;size:50"`
+	Config    datatypes.JSON `gorm:"column:config;type:jsonb;"`
+	Available bool           `gorm:"column:available;"`
 }
 
-func buildAuthenticatorTableName(code string) string {
-	return "helix_hwt_" + strings.ToLower(code) + "_authenticator"
+func (model *ChannelM) TableName() string {
+	return "helix_sattva_uni_channel"
 }

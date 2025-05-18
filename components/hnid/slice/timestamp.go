@@ -17,9 +17,13 @@ const (
 )
 
 const (
-	MillPerDay   = int64(24 * time.Hour)
-	MillPerMonth = 30 * MillPerDay
-	MillPerYear  = 365 * MillPerDay
+	MillPerSecond = int64(1000)
+	MillPerMinute = 60 * MillPerSecond
+	MillPerHour   = 60 * MillPerMinute
+	MillPerDay    = 24 * MillPerHour
+	MillPerMonth  = 30 * MillPerDay
+	MillPerYear   = 365 * MillPerDay
+	MillZero      = int64(1580608922000)
 )
 
 type Timestamp struct {
@@ -66,7 +70,7 @@ func (ts *Timestamp) buildDf() (uint64, uint8) {
 }
 
 func (ts *Timestamp) buildUnix() (uint64, uint8) {
-	ms := time.Now().UnixMilli()
+	ms := time.Now().UnixMilli() - MillZero
 	numb := uint64(0)
 	switch ts.tt {
 	case YearTT:
@@ -76,11 +80,11 @@ func (ts *Timestamp) buildUnix() (uint64, uint8) {
 	case DayTT:
 		numb = uint64(ms / MillPerDay)
 	case HourTT:
-		numb = uint64(ms / int64(time.Hour))
+		numb = uint64(ms / MillPerHour)
 	case MinuteTT:
-		numb = uint64(ms / int64(time.Minute))
+		numb = uint64(ms / MillPerMinute)
 	case SecondTT:
-		numb = uint64(ms / int64(time.Second))
+		numb = uint64(ms / MillPerSecond)
 	default:
 		return 0, 0
 	}
