@@ -1,3 +1,3 @@
 package htree
 
-type ID int64
+type ID = int64

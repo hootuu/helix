@@ -73,8 +73,10 @@ func doOnce(onceCode string, call func() error) error {
 		return err
 	}
 
+	hsys.Info("Once Do: ", onceCode, " ......")
 	err = call()
 	if err != nil {
+		hsys.Info("Once Do: ", onceCode, " :", err.Error())
 		hlog.Err("helix.once.doOnce: local execute failed", zap.String("code", onceCode), zap.Error(err))
 		igErr := doSetEnd(onceM, FAILED)
 		if igErr != nil {
@@ -83,6 +85,7 @@ func doOnce(onceCode string, call func() error) error {
 		}
 		return err
 	}
+	hsys.Success("Once Do: ", onceCode, " [OK]")
 
 	igErr := doSetEnd(onceM, SUCCESS)
 	if igErr != nil {
