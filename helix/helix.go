@@ -37,7 +37,7 @@ func BuildHelix(
 	}
 }
 
-const gCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,15}$`
+const gCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,32}$`
 
 var gCodeRegexp = regexp.MustCompile(gCodeRegexpTpl)
 
@@ -95,6 +95,7 @@ func doRegister(helix Helix) {
 
 func doStartup() {
 	hsys.Warn("# Startup all registered helix ...... #")
+	gHelixBeenStartup = true
 	for _, helix := range gHelixArr {
 		hsys.Warn("  ## Startup the helix: [", helix.code, "] ...... #")
 		ctx, err := helix.startup()
@@ -122,7 +123,6 @@ func doStartup() {
 	})
 	hsys.Success("# Display all init used configure items [OK] #")
 
-	gHelixBeenStartup = true
 	gHelixStartupSuccessOn.On()
 
 	quit := make(chan os.Signal)

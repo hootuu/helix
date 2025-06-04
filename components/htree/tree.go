@@ -41,6 +41,10 @@ func (t *Tree) Helix() helix.Helix {
 	})
 }
 
+func (t *Tree) Factory() *IdFactory {
+	return t.factory
+}
+
 func (t *Tree) Root() ID {
 	return t.factory.Root()
 }
@@ -100,7 +104,7 @@ func (t *Tree) Next(id ID, call func(id ID) error) error {
 }
 
 func (t *Tree) doInit() error {
-	err := hpg.AutoMigrateWithTable(zplt.HelixPgDB().PG().Table(t.tableName()), hpg.NewTable(t.tableName(), &TreeM{}))
+	err := hpg.AutoMigrateWithTable(zplt.HelixPgDB().PG(), hpg.NewTable(t.tableName(), &TreeM{}))
 	if err != nil {
 		hlog.Err("helix.tree.doInit: AutoMigrateWithTable", zap.Error(err))
 		return err
