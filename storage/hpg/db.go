@@ -80,6 +80,9 @@ func (db *Database) shutdown(_ context.Context) {
 }
 
 func (db *Database) PG() *gorm.DB {
+	if hsys.RunMode().IsDev() {
+		return db.pgDB.Debug()
+	}
 	return db.pgDB
 }
 

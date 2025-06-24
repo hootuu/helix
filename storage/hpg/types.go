@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+type Transaction = *gorm.DB
+
 type Version uint64
 
 func (v Version) Inc() Version {

@@ -29,3 +29,12 @@ func MultiCreate[T any](dbTx *gorm.DB, arr []*T) error {
 		return nil
 	})
 }
+
+func GetOrCreate[T any](dbTx *gorm.DB, model *T, cond ...any) error {
+	err := dbTx.FirstOrCreate(model, cond...).Error
+	if err != nil {
+		hlog.Err("hpg.GetOrCreate", zap.Any("model", model), zap.Error(err))
+		return err
+	}
+	return nil
+}

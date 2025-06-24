@@ -103,6 +103,18 @@ func (t *Tree) Next(id ID, call func(id ID) error) error {
 	return nil
 }
 
+func (t *Tree) NextID(parent ID) (ID, error) {
+	var id ID
+	err := t.Next(parent, func(newID ID) error {
+		id = newID
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
 func (t *Tree) doInit() error {
 	err := hpg.AutoMigrateWithTable(zplt.HelixPgDB().PG(), hpg.NewTable(t.tableName(), &TreeM{}))
 	if err != nil {
