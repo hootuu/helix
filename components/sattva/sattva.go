@@ -6,13 +6,13 @@ import (
 	"github.com/hootuu/helix/components/sattva/channel"
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/data/dict"
 )
 
 type Sattva struct {
 	Code string
-	db   *hpg.Database
+	db   *hdb.Database
 }
 
 func newSattva(code string) *Sattva {
@@ -23,7 +23,7 @@ func newSattva(code string) *Sattva {
 	return s
 }
 
-func (s *Sattva) WithDatabase(db *hpg.Database) *Sattva {
+func (s *Sattva) WithDatabase(db *hdb.Database) *Sattva {
 	s.db = db
 	return s
 }

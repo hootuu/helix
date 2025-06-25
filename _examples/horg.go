@@ -6,7 +6,7 @@ import (
 	"github.com/hootuu/helix/components/horg"
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hypes/collar"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -66,17 +66,17 @@ func main() {
 		//}
 		//fmt.Println(level05ID)
 		ctx := context.WithValue(context.Background(), "_trace_id_", "hello_world_"+cast.ToString(time.Now().Unix()))
-		err = hpg.Tx(zplt.HelixPgCtx(ctx), func(tx *gorm.DB) error {
+		err = hdb.Tx(zplt.HelixPgCtx(ctx), func(tx *gorm.DB) error {
 			var authIDArr []horg.AuthID
 			for i := 0; i < 1; i++ {
-				authID, err := horg.AddAuth(hpg.TxCtx(tx, ctx), level01ID, "ADMIN-"+cast.ToString(i), []string{"abc.create8888", "abc.delete8888"})
+				authID, err := horg.AddAuth(hdb.TxCtx(tx, ctx), level01ID, "ADMIN-"+cast.ToString(i), []string{"abc.create8888", "abc.delete8888"})
 				if err != nil {
 					return err
 				}
 				authIDArr = append(authIDArr, authID)
 			}
 
-			err = horg.BindMember(hpg.TxCtx(tx, ctx), level01ID, "ABC-USER", authIDArr)
+			err = horg.BindMember(hdb.TxCtx(tx, ctx), level01ID, "ABC-USER", authIDArr)
 			if err != nil {
 				return err
 			}

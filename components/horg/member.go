@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/sattva"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 )
@@ -39,7 +39,7 @@ func BindMember(
 	}
 	tx := zplt.HelixPgCtx(ctx)
 
-	memberM, err := hpg.Get[OrgMemberM](tx, "org = ? AND member = ?", orgID, memberID)
+	memberM, err := hdb.Get[OrgMemberM](tx, "org = ? AND member = ?", orgID, memberID)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func BindMember(
 			Member:    memberID,
 			Authority: authority,
 		}
-		err = hpg.Create[OrgMemberM](tx, memberM)
+		err = hdb.Create[OrgMemberM](tx, memberM)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func BindMember(
 		mut := map[string]any{
 			"authority": authority,
 		}
-		err = hpg.Update[OrgMemberM](tx, mut, "org = ? AND member = ?", orgID, memberID)
+		err = hdb.Update[OrgMemberM](tx, mut, "org = ? AND member = ?", orgID, memberID)
 		if err != nil {
 			return err
 		}

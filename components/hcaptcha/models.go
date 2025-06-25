@@ -1,12 +1,12 @@
 package hcaptcha
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"time"
 )
 
 type CaptchaM struct {
-	hpg.Basic
+	hdb.Basic
 	Link           string    `gorm:"column:link;primaryKey;not null;size:32"`
 	Type           Type      `gorm:"column:captcha_type;"`
 	Captcha        Captcha   `gorm:"column:captcha;not null;size:32"`

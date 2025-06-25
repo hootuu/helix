@@ -1,12 +1,12 @@
 package htree
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 )
 
 type TreeM struct {
-	hpg.Basic
+	hdb.Basic
 	ID       ID          `gorm:"column:id;primaryKey;"`
 	Sequence int64       `gorm:"column:sequence;"`
-	Version  hpg.Version `gorm:"column:version;"`
+	Version  hdb.Version `gorm:"column:version;"`
 }

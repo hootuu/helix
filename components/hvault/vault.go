@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/crypto/haes"
 	"github.com/hootuu/hyle/crypto/hed25519"
 	"github.com/hootuu/hyle/data/idx"
@@ -90,7 +90,7 @@ func doDecrypt(src []byte) ([]byte, error) {
 	}
 	if willUsePriKey == nil {
 		kcIdx := string(idxBytes)
-		vaultM, err := hpg.Get[VaultM](zplt.HelixPgDB().PG(), "idx = ?", kcIdx)
+		vaultM, err := hdb.Get[VaultM](zplt.HelixPgDB().PG(), "idx = ?", kcIdx)
 		if err != nil {
 			hlog.Err("helix.vault.Decrypt", zap.Error(err))
 			return nil, err
@@ -216,7 +216,7 @@ func batchGen(size int) error {
 }
 
 func multiCreate(arr []*VaultM) error {
-	err := hpg.MultiCreate[VaultM](zplt.HelixPgDB().PG(), arr)
+	err := hdb.MultiCreate[VaultM](zplt.HelixPgDB().PG(), arr)
 	if err != nil {
 		hlog.Err("helix.hvault.multiCreate", zap.Error(err))
 		return nil
@@ -227,7 +227,7 @@ func multiCreate(arr []*VaultM) error {
 func updateUsage(idx string, usage uint64) error {
 	mut := make(map[string]interface{})
 	mut["usage"] = usage
-	err := hpg.Update[VaultM](zplt.HelixPgDB().PG(), mut, "idx = ?", idx)
+	err := hdb.Update[VaultM](zplt.HelixPgDB().PG(), mut, "idx = ?", idx)
 	if err != nil {
 		hlog.Err("helix.hvault.updateUsage", zap.Error(err))
 		return err
@@ -237,7 +237,7 @@ func updateUsage(idx string, usage uint64) error {
 
 func loadAvailable(limit int) ([]*VaultM, error) {
 	var arr []*VaultM
-	arr, err := hpg.Find[VaultM](func() *gorm.DB {
+	arr, err := hdb.Find[VaultM](func() *gorm.DB {
 		return zplt.HelixPgDB().PG().Model(&VaultM{}).
 			Where("available = ?", true).Limit(limit)
 	})

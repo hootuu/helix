@@ -3,7 +3,7 @@ package hidem
 import (
 	"fmt"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hync"
 	"go.uber.org/zap"
@@ -31,14 +31,14 @@ func (f *dbFactory) Check(idemCode string) (bool, error) {
 	idemM := &IdemM{
 		IdemCode: idemCode,
 	}
-	exist, err := hpg.Exist[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), "idem_code = ?", idemM.IdemCode)
+	exist, err := hdb.Exist[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), "idem_code = ?", idemM.IdemCode)
 	if err != nil {
 		return false, err
 	}
 	if exist {
 		return false, nil
 	}
-	err = hpg.Create[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), idemM)
+	err = hdb.Create[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), idemM)
 	if err != nil {
 		return false, err
 	}
@@ -101,6 +101,6 @@ func (f *dbFactory) clean() {
 }
 
 type IdemM struct {
-	hpg.Basic
+	hdb.Basic
 	IdemCode string `gorm:"column:idem_code;primaryKey;not null;size:128"`
 }

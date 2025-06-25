@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/helix/storage/hrds"
 	"github.com/hootuu/hyle/crypto/hed25519"
 	"github.com/hootuu/hyle/hcfg"
@@ -37,8 +37,8 @@ func (h *Hwt) Helix() helix.Helix {
 	return helix.BuildHelix(
 		"helix_hwt_"+h.Code,
 		func() (context.Context, error) {
-			err := hpg.AutoMigrateWithTable(h.db().PG(),
-				hpg.NewTable(buildRefreshTokenTableName(h.Code), &RefreshTokenM{}))
+			err := hdb.AutoMigrateWithTable(h.db().PG(),
+				hdb.NewTable(buildRefreshTokenTableName(h.Code), &RefreshTokenM{}))
 			if err != nil {
 				return nil, err
 			}
@@ -62,7 +62,7 @@ func (h *Hwt) RefreshIssuing(identity string) (*hio.JwtToken, error) {
 	}
 	jwtToken.RefreshExpiration = current.Add(h.refreshExp).UnixMilli()
 
-	err = hpg.Tx(
+	err = hdb.Tx(
 		h.db().PG().Table(buildRefreshTokenTableName(h.Code)),
 		func(tx *gorm.DB) error {
 			var err error
@@ -107,7 +107,7 @@ func (h *Hwt) TokenIssuing(identity string, refreshToken string) (*hio.JwtToken,
 	var jwtToken hio.JwtToken
 	var err error
 
-	refreshM, err := hpg.Get[RefreshTokenM](
+	refreshM, err := hdb.Get[RefreshTokenM](
 		h.db().PG().Table(buildRefreshTokenTableName(h.Code)),
 		"refresh_token = ? AND identity = ? AND code = ?",
 		refreshToken, identity, h.Code,
@@ -146,7 +146,7 @@ func (h *Hwt) doTokenIssuing(identity string) (string, error) {
 	return token, nil
 }
 
-func (h *Hwt) db() *hpg.Database {
+func (h *Hwt) db() *hdb.Database {
 	return zplt.HelixPgDB()
 }
 

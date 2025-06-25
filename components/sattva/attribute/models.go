@@ -1,12 +1,12 @@
 package attribute
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"gorm.io/datatypes"
 )
 
 type BasicM struct {
-	hpg.Basic
+	hdb.Basic
 	Identification string `gorm:"column:identification;uniqueIndex:uk_id_attr;not null;size:32"`
 	Attr           string `gorm:"column:attr;uniqueIndex:uk_id_attr;not null;size:64"`
 }

@@ -2,7 +2,7 @@ package hcaptcha
 
 import (
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/crypto/hmd5"
 	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
@@ -27,9 +27,9 @@ func newCaptcha(link string, opt *Options) (Captcha, error) {
 		SubmittedTime:  current,
 		ExpirationTime: current.Add(opt.Expiration),
 	}
-	err := hpg.Create[CaptchaM](zplt.HelixPgDB().PG(), capM)
+	err := hdb.Create[CaptchaM](zplt.HelixPgDB().PG(), capM)
 	if err != nil {
-		hlog.Err("hcaptcha.newCaptcha: hpg.Create", zap.Error(err))
+		hlog.Err("hcaptcha.newCaptcha: hdb.Create", zap.Error(err))
 		return NilCaptcha, err
 	}
 	return cptCode, nil
@@ -37,9 +37,9 @@ func newCaptcha(link string, opt *Options) (Captcha, error) {
 
 func verifyCaptcha(link string, capCode Captcha) (bool, error) {
 	linkID := hmd5.MD5(link)
-	capM, err := hpg.Get[CaptchaM](zplt.HelixPgDB().PG(), "link = ?", linkID)
+	capM, err := hdb.Get[CaptchaM](zplt.HelixPgDB().PG(), "link = ?", linkID)
 	if err != nil {
-		hlog.Err("hcaptcha.verifyCaptcha: hpg.Get", zap.Error(err))
+		hlog.Err("hcaptcha.verifyCaptcha: hdb.Get", zap.Error(err))
 		return false, err
 	}
 	if capM == nil {

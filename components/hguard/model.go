@@ -1,12 +1,12 @@
 package hguard
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"time"
 )
 
 type GuardM struct {
-	hpg.Basic
+	hdb.Basic
 	ID           string    `gorm:"column:id;primaryKey;not null;size:32"`
 	Biz          string    `gorm:"column:biz;uniqueIndex:uk_biz_alias;not null;size:32"`
 	Alias        string    `gorm:"column:alias;uniqueIndex:uk_biz_alias;not null;size:32"`

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hsys"
 	"go.uber.org/zap"
@@ -21,13 +21,13 @@ const (
 )
 
 type OnceM struct {
-	hpg.Basic
+	hdb.Basic
 	OnceCode    string      `gorm:"column:once_code;primaryKey;not null;size:128"`
 	DoServerID  string      `gorm:"column:do_serv_id;index;not null;size:32"`
 	DoStatus    Status      `gorm:"column:do_status"`
 	DoStartTime time.Time   `gorm:"column:do_start_time;;not null"`
 	DoEndTime   time.Time   `gorm:"column:do_end_time;;not null"`
-	Version     hpg.Version `gorm:"column:version;default:0"`
+	Version     hdb.Version `gorm:"column:version;default:0"`
 }
 
 func (m *OnceM) TableName() string {
@@ -35,7 +35,7 @@ func (m *OnceM) TableName() string {
 }
 
 func doSetEnd(m *OnceM, status Status) error {
-	return hpg.Update[OnceM](
+	return hdb.Update[OnceM](
 		zplt.HelixPgDB().PG(),
 		map[string]any{
 			"do_status":   status,
@@ -48,7 +48,7 @@ func doSetEnd(m *OnceM, status Status) error {
 }
 
 func doOnce(onceCode string, call func() error) error {
-	onceM, err := hpg.Get[OnceM](zplt.HelixPgDB().PG(), "once_code = ?", onceCode)
+	onceM, err := hdb.Get[OnceM](zplt.HelixPgDB().PG(), "once_code = ?", onceCode)
 	if err != nil {
 		hlog.Err("helix.once.doOnce: Get", zap.String("code", onceCode), zap.Error(err))
 		return err
@@ -68,7 +68,7 @@ func doOnce(onceCode string, call func() error) error {
 		DoStartTime: time.Now(),
 	}
 
-	err = hpg.Create[OnceM](zplt.HelixPgDB().PG(), onceM)
+	err = hdb.Create[OnceM](zplt.HelixPgDB().PG(), onceM)
 	if err != nil {
 		return err
 	}

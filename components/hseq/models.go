@@ -1,15 +1,15 @@
 package hseq
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hypes/collar"
 )
 
 type SeqM struct {
-	hpg.Basic
+	hdb.Basic
 	Biz     collar.ID   `gorm:"column:biz;primaryKey;"`
 	Seq     int64       `gorm:"column:seq;"`
-	Version hpg.Version `gorm:"column:version;"`
+	Version hdb.Version `gorm:"column:version;"`
 }
 
 func (SeqM) TableName() string {

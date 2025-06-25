@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hootuu/helix/components/htree"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/data/dict"
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hypes/collar"
@@ -64,7 +64,7 @@ func Create(ctx context.Context, paras CreateParas, call ...func(ctx context.Con
 		Name:      paras.Name,
 		Meta:      hjson.MustToBytes(paras.Meta),
 	}
-	err = hpg.Create[OrgM](tx, orgM)
+	err = hdb.Create[OrgM](tx, orgM)
 	if err != nil {
 		return 0, err
 	}
@@ -111,7 +111,7 @@ func Add(ctx context.Context, paras AddParas, call ...func(ctx context.Context, 
 		return 0, err
 	}
 	tx := zplt.HelixPgCtx(ctx)
-	parentM, err := hpg.Get[OrgM](tx, "id = ?", paras.Parent)
+	parentM, err := hdb.Get[OrgM](tx, "id = ?", paras.Parent)
 	if err != nil {
 		return 0, err
 	}
@@ -131,7 +131,7 @@ func Add(ctx context.Context, paras AddParas, call ...func(ctx context.Context, 
 		Name:      paras.Name,
 		Meta:      hjson.MustToBytes(paras.Meta),
 	}
-	err = hpg.Create[OrgM](tx, orgM)
+	err = hdb.Create[OrgM](tx, orgM)
 	if err != nil {
 		return 0, err
 	}
@@ -147,7 +147,7 @@ func MustExistWithSovereign(ctx context.Context, id ID, sov bool) error {
 }
 
 func mustExist(ctx context.Context, query any, cond ...any) error {
-	b, err := hpg.Exist[OrgM](zplt.HelixPgCtx(ctx), query, cond...)
+	b, err := hdb.Exist[OrgM](zplt.HelixPgCtx(ctx), query, cond...)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func Get(ctx context.Context, parent ID, deep int) ([]*Organization, error) {
 }
 
 func loadChildren(ctx context.Context, minID htree.ID, maxID htree.ID, base htree.ID) ([]*Organization, error) {
-	arrM, err := hpg.Find[OrgM](func() *gorm.DB {
+	arrM, err := hdb.Find[OrgM](func() *gorm.DB {
 		return zplt.HelixPgCtx(ctx).Where("id % ? = 0 AND id >= ? AND id <= ?", base, minID, maxID)
 	})
 	if err != nil {

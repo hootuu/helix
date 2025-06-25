@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/data/dict"
 	"github.com/hootuu/hyle/data/hcast"
 	"github.com/hootuu/hyle/data/hjson"
@@ -33,11 +33,11 @@ func doSetSimple(id string, attr string, value interface{}) error {
 	if len(strVal) > 500 {
 		return errors.New("the length of attr.value must <= 500")
 	}
-	simpleM, err := hpg.Get[SimpleM](zplt.HelixPgDB().PG(),
+	simpleM, err := hdb.Get[SimpleM](zplt.HelixPgDB().PG(),
 		"identification = ? AND attr = ?",
 		id, attr)
 	if err != nil {
-		hlog.Err("helix.sattva.attr.doSetSimple: hpg.Get", zap.Error(err))
+		hlog.Err("helix.sattva.attr.doSetSimple: hdb.Get", zap.Error(err))
 		return err
 	}
 	if simpleM == nil {
@@ -48,9 +48,9 @@ func doSetSimple(id string, attr string, value interface{}) error {
 			},
 			Value: strVal,
 		}
-		err = hpg.Create[SimpleM](zplt.HelixPgDB().PG(), simpleM)
+		err = hdb.Create[SimpleM](zplt.HelixPgDB().PG(), simpleM)
 		if err != nil {
-			hlog.Err("helix.sattva.attr.doSetSimple: hpg.Create", zap.Error(err))
+			hlog.Err("helix.sattva.attr.doSetSimple: hdb.Create", zap.Error(err))
 			return err
 		}
 		return nil
@@ -61,11 +61,11 @@ func doSetSimple(id string, attr string, value interface{}) error {
 	mut := map[string]interface{}{
 		"value": strVal,
 	}
-	err = hpg.Update[SimpleM](zplt.HelixPgDB().PG(), mut,
+	err = hdb.Update[SimpleM](zplt.HelixPgDB().PG(), mut,
 		"identification = ? AND attr = ?",
 		id, attr)
 	if err != nil {
-		hlog.Err("helix.sattva.attr.doSetSimple: hpg.Update", zap.Error(err))
+		hlog.Err("helix.sattva.attr.doSetSimple: hdb.Update", zap.Error(err))
 		return err
 	}
 	return nil
@@ -73,11 +73,11 @@ func doSetSimple(id string, attr string, value interface{}) error {
 
 func doSetComplex(id string, attr string, value interface{}) error {
 	mapVal, _ := value.(map[string]interface{})
-	complexM, err := hpg.Get[ComplexM](zplt.HelixPgDB().PG(),
+	complexM, err := hdb.Get[ComplexM](zplt.HelixPgDB().PG(),
 		"identification = ? AND attr = ?",
 		id, attr)
 	if err != nil {
-		hlog.Err("helix.sattva.attr.doSetComplex: hpg.Get", zap.Error(err))
+		hlog.Err("helix.sattva.attr.doSetComplex: hdb.Get", zap.Error(err))
 		return err
 	}
 	mapJsonBytes, err := hjson.ToBytes(mapVal)
@@ -93,9 +93,9 @@ func doSetComplex(id string, attr string, value interface{}) error {
 			},
 			Value: mapJsonBytes,
 		}
-		err = hpg.Create[ComplexM](zplt.HelixPgDB().PG(), complexM)
+		err = hdb.Create[ComplexM](zplt.HelixPgDB().PG(), complexM)
 		if err != nil {
-			hlog.Err("helix.sattva.attr.doSetComplex: hpg.Create", zap.Error(err))
+			hlog.Err("helix.sattva.attr.doSetComplex: hdb.Create", zap.Error(err))
 			return err
 		}
 		return nil
@@ -106,11 +106,11 @@ func doSetComplex(id string, attr string, value interface{}) error {
 	mut := map[string]interface{}{
 		"value": mapJsonBytes,
 	}
-	err = hpg.Update[ComplexM](zplt.HelixPgDB().PG(), mut,
+	err = hdb.Update[ComplexM](zplt.HelixPgDB().PG(), mut,
 		"identification = ? AND attr = ?",
 		id, attr)
 	if err != nil {
-		hlog.Err("helix.sattva.attr.doSetComplex: hpg.Update", zap.Error(err))
+		hlog.Err("helix.sattva.attr.doSetComplex: hdb.Update", zap.Error(err))
 		return err
 	}
 	return nil
@@ -119,7 +119,7 @@ func doSetComplex(id string, attr string, value interface{}) error {
 func doGet(id string, withSimple bool, withComplex bool, attr ...string) (dict.Dict, error) {
 	attrDict := dict.NewDict()
 	if withSimple {
-		simpleArr, err := hpg.Find[SimpleM](func() *gorm.DB {
+		simpleArr, err := hdb.Find[SimpleM](func() *gorm.DB {
 			return zplt.HelixPgDB().PG().Model(&SimpleM{}).
 				Where("identification = ? AND attr in ?", id, attr)
 		})
@@ -134,7 +134,7 @@ func doGet(id string, withSimple bool, withComplex bool, attr ...string) (dict.D
 		}
 	}
 	if withComplex {
-		complexArr, err := hpg.Find[ComplexM](func() *gorm.DB {
+		complexArr, err := hdb.Find[ComplexM](func() *gorm.DB {
 			return zplt.HelixPgDB().PG().Model(&ComplexM{}).
 				Where("identification = ? AND attr in ?", id, attr)
 		})

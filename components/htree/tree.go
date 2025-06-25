@@ -6,7 +6,7 @@ import (
 	"github.com/hootuu/helix/components/honce"
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -50,7 +50,7 @@ func (t *Tree) Root() ID {
 }
 
 func (t *Tree) Next(id ID, call func(id ID) error) error {
-	treeM, err := hpg.Get[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()),
+	treeM, err := hdb.Get[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()),
 		"id = ?", id)
 	if err != nil {
 		hlog.Err("helix.tree.Next: Get", zap.Error(err))
@@ -65,8 +65,8 @@ func (t *Tree) Next(id ID, call func(id ID) error) error {
 		hlog.Err("helix.tree.Next: f.Next", zap.Error(err))
 		return err
 	}
-	err = hpg.Tx(zplt.HelixPgDB().PG().Table(t.tableName()), func(tx *gorm.DB) error {
-		err := hpg.Update[TreeM](tx,
+	err = hdb.Tx(zplt.HelixPgDB().PG().Table(t.tableName()), func(tx *gorm.DB) error {
+		err := hdb.Update[TreeM](tx,
 			map[string]interface{}{
 				"sequence": gorm.Expr("sequence + 1"),
 				"version":  gorm.Expr("version + 1"),
@@ -81,7 +81,7 @@ func (t *Tree) Next(id ID, call func(id ID) error) error {
 			Sequence: 0,
 			Version:  0,
 		}
-		err = hpg.Create[TreeM](tx, newTreeM)
+		err = hdb.Create[TreeM](tx, newTreeM)
 		if err != nil {
 			hlog.Err("helix.tree.Next: Create", zap.Error(err))
 			return err
@@ -116,7 +116,7 @@ func (t *Tree) NextID(parent ID) (ID, error) {
 }
 
 func (t *Tree) doInit() error {
-	err := hpg.AutoMigrateWithTable(zplt.HelixPgDB().PG(), hpg.NewTable(t.tableName(), &TreeM{}))
+	err := hdb.AutoMigrateWithTable(zplt.HelixPgDB().PG(), hdb.NewTable(t.tableName(), &TreeM{}))
 	if err != nil {
 		hlog.Err("helix.tree.doInit: AutoMigrateWithTable", zap.Error(err))
 		return err
@@ -124,7 +124,7 @@ func (t *Tree) doInit() error {
 	err = honce.Do(fmt.Sprintf("helix.tree.%s.%d.root.init",
 		strings.ToLower(t.Code), t.factory.version),
 		func() error {
-			treeM, err := hpg.Get[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()),
+			treeM, err := hdb.Get[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()),
 				"id = ?", t.Root())
 			if err != nil {
 				hlog.Err("helix.tree.doInit: Get", zap.Error(err))
@@ -136,7 +136,7 @@ func (t *Tree) doInit() error {
 					Sequence: 0,
 					Version:  0,
 				}
-				err = hpg.Create[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()), rootTreeM)
+				err = hdb.Create[TreeM](zplt.HelixPgDB().PG().Table(t.tableName()), rootTreeM)
 				if err != nil {
 					hlog.Err("helix.tree.doInit: Create", zap.Error(err))
 					return err

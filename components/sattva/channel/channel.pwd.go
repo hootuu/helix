@@ -6,7 +6,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/hvault"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/crypto/hmd5"
 	"github.com/hootuu/hyle/data/dict"
 	"github.com/hootuu/hyle/data/hjson"
@@ -98,7 +98,7 @@ func (h *PwdHandler) Identify(input *Channel) (bool, error) {
 		return false, err
 	}
 
-	idChnM, err := hpg.Get[IdChannelM](zplt.HelixPgDB().PG(),
+	idChnM, err := hdb.Get[IdChannelM](zplt.HelixPgDB().PG(),
 		"channel = ? AND link = ?",
 		chnID, input.Link)
 	if err != nil {

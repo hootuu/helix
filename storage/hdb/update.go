@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ func Update[T any](dbTx *gorm.DB, mut map[string]any, query any, args ...any) er
 	var m T
 	tx := dbTx.Model(&m).Where(query, args...).Updates(mut)
 	if tx.Error != nil {
-		hlog.Err("hpg.Update", zap.Any("mut", mut),
+		hlog.Err("hdb.Update", zap.Any("mut", mut),
 			zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
 		return errors.New("db.update error:" + tx.Error.Error())
 	}

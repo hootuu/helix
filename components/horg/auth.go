@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/hseq"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 )
@@ -43,7 +43,7 @@ func AddAuth(ctx context.Context, orgID ID, name string, action []string) (authI
 		Name:    name,
 		Action:  action,
 	}
-	err = hpg.Create[OrgAuthorityM](tx, m)
+	err = hdb.Create[OrgAuthorityM](tx, m)
 	if err != nil {
 		return 0, err
 	}
@@ -58,7 +58,7 @@ func SetAuth(ctx context.Context, orgID ID, authID AuthID, name string, action [
 		return errors.New("require authID")
 	}
 	tx := zplt.HelixPgCtx(ctx)
-	authM, err := hpg.Get[OrgAuthorityM](tx, "org = ? AND inner_id = ?", orgID, authID)
+	authM, err := hdb.Get[OrgAuthorityM](tx, "org = ? AND inner_id = ?", orgID, authID)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func SetAuth(ctx context.Context, orgID ID, authID AuthID, name string, action [
 	if len(action) > 0 {
 		mut["action"] = action
 	}
-	err = hpg.Update[OrgAuthorityM](tx, mut, "org = ? AND inner_id = ?", orgID, authID)
+	err = hdb.Update[OrgAuthorityM](tx, mut, "org = ? AND inner_id = ?", orgID, authID)
 	if err != nil {
 		return err
 	}

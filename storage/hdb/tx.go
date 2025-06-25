@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 import (
 	"context"
@@ -36,13 +36,13 @@ func Tx(db *gorm.DB, fn func(tx *gorm.DB) error) error {
 	nErr := db.Transaction(func(tx *gorm.DB) error {
 		err := fn(tx)
 		if err != nil {
-			hlog.Err("hpg.Tx: fn", zap.Error(err))
+			hlog.Err("hdb.Tx: fn", zap.Error(err))
 			return err
 		}
 		return nil
 	})
 	if nErr != nil {
-		hlog.Err("hpg.Tx: db.Transaction", zap.Error(nErr))
+		hlog.Err("hdb.Tx: db.Transaction", zap.Error(nErr))
 		return nErr
 	}
 	return nil

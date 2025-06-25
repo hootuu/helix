@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 import (
 	"context"
@@ -93,7 +93,7 @@ func doRegister(code string) {
 	gPostgresDbMutex.Lock()
 	defer gPostgresDbMutex.Unlock()
 	if _, ok := gPostgresDbMap[code]; ok {
-		hlog.Err("hpg.doRegister: pg db repetition")
+		hlog.Err("hdb.doRegister: pg db repetition")
 		return
 	}
 	db := newDatabase(code)
@@ -114,7 +114,7 @@ func doGetDb(code string) *Database {
 func doDbActWithRetry(call func() error) error {
 	return retry.Do(
 		call,
-		retry.Attempts(uint(hcfg.GetInt("hpg.act.retry.attempts", 3))),
-		retry.Delay(hcfg.GetDuration("hpg.act.retry.delay", 600*time.Millisecond)),
+		retry.Attempts(uint(hcfg.GetInt("hdb.act.retry.attempts", 3))),
+		retry.Delay(hcfg.GetDuration("hdb.act.retry.delay", 600*time.Millisecond)),
 	)
 }

@@ -4,14 +4,14 @@ import (
 	"context"
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hypes/collar"
 )
 
 func Next(ctx context.Context, biz collar.Collar) (ID, error) {
 	bizID := biz.ID()
 	tx := zplt.HelixPgCtx(ctx)
-	seqM, err := hpg.Get[SeqM](tx, "biz = ?", bizID)
+	seqM, err := hdb.Get[SeqM](tx, "biz = ?", bizID)
 	if err != nil {
 		return 0, err
 	}
@@ -21,7 +21,7 @@ func Next(ctx context.Context, biz collar.Collar) (ID, error) {
 			Seq:     1,
 			Version: 1,
 		}
-		err = hpg.Create[SeqM](tx, seqM)
+		err = hdb.Create[SeqM](tx, seqM)
 		if err != nil {
 			return 0, err
 		}
@@ -31,7 +31,7 @@ func Next(ctx context.Context, biz collar.Collar) (ID, error) {
 		"seq":     seqM.Seq + 1,
 		"version": seqM.Version + 1,
 	}
-	err = hpg.Update[SeqM](tx, mut, "biz = ? AND version = ?", bizID, seqM.Version)
+	err = hdb.Update[SeqM](tx, mut, "biz = ? AND version = ?", bizID, seqM.Version)
 	if err != nil {
 		return 0, err
 	}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/sattva/channel"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/data/hcast"
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hcfg"
@@ -83,7 +83,7 @@ func localHandlersReload() {
 					gFactoryLstSyncTime = time.Now()
 				}
 			}()
-			chnArr, err := hpg.Find[ChannelM](func() *gorm.DB {
+			chnArr, err := hdb.Find[ChannelM](func() *gorm.DB {
 				return zplt.HelixPgDB().PG().
 					Where("available = ?", true)
 			})

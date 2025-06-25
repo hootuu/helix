@@ -2,7 +2,7 @@ package zplt
 
 import (
 	"context"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"gorm.io/gorm"
 )
 
@@ -10,12 +10,12 @@ const (
 	helixDb = "helix_pg"
 )
 
-func HelixPgDB() *hpg.Database {
-	return hpg.GetDatabase(helixDb)
+func HelixPgDB() *hdb.Database {
+	return hdb.GetDatabase(helixDb)
 }
 
 func HelixPgCtx(ctx context.Context) *gorm.DB {
-	tx := hpg.CtxTx(ctx)
+	tx := hdb.CtxTx(ctx)
 	if tx == nil {
 		tx = HelixPgDB().PG()
 	}
@@ -23,9 +23,9 @@ func HelixPgCtx(ctx context.Context) *gorm.DB {
 }
 
 func HelixPgTx(ctx ...context.Context) context.Context {
-	return hpg.TxCtx(HelixPgDB().PG(), ctx...)
+	return hdb.TxCtx(HelixPgDB().PG(), ctx...)
 }
 
 func init() {
-	hpg.Register(helixDb)
+	hdb.Register(helixDb)
 }

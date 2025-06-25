@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 import (
 	"errors"
@@ -13,7 +13,7 @@ func Count[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) (int64,
 	var count int64
 	tx := dbTx.Model(&m).Where(query, args...).Count(&count)
 	if tx.Error != nil {
-		hlog.Err("hpg.Count", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
+		hlog.Err("hdb.Count", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
 		return 0, errors.New("db.count error:" + tx.Error.Error())
 	}
 	return count, nil
@@ -24,7 +24,7 @@ func Exist[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) (bool, 
 	var b bool
 	tx := dbTx.Model(&m).Select("1").Where(query, args...).Limit(1).Find(&b)
 	if tx.Error != nil {
-		hlog.Err("hpg.Exist", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
+		hlog.Err("hdb.Exist", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
 		return false, errors.New("db.exist error:" + tx.Error.Error())
 	}
 	return b, nil
@@ -34,7 +34,7 @@ func ExistWithTable(dbTx *gorm.DB, query interface{}, args ...interface{}) (bool
 	var b bool
 	tx := dbTx.Select("1").Where(query, args...).Limit(1).Find(&b)
 	if tx.Error != nil {
-		hlog.Err("hpg.ExistWithTable", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
+		hlog.Err("hdb.ExistWithTable", zap.Any("query", query), zap.Any("args", args), zap.Error(tx.Error))
 		return false, errors.New("db.exist error:" + tx.Error.Error())
 	}
 	return b, nil
@@ -45,7 +45,7 @@ func Get[T any](dbTx *gorm.DB, query string, cond ...interface{}) (*T, error) {
 	var arr []*T
 	tx := dbTx.Model(&m).Where(query, cond...).Limit(1).Find(&arr)
 	if tx.Error != nil {
-		hlog.Err("hpg.Get", zap.Any("query", query), zap.Any("cond", cond), zap.Error(tx.Error))
+		hlog.Err("hdb.Get", zap.Any("query", query), zap.Any("cond", cond), zap.Error(tx.Error))
 		return nil, errors.New("db.get err:" + tx.Error.Error())
 	}
 	if len(arr) == 0 {

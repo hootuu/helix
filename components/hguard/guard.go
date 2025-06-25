@@ -5,8 +5,8 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/hvault"
 	"github.com/hootuu/helix/components/zplt"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/helix/storage/hlocal"
-	"github.com/hootuu/helix/storage/hpg"
 	"github.com/hootuu/hyle/crypto/hed25519"
 	"github.com/hootuu/hyle/data/idx"
 	"github.com/hootuu/hyle/hlog"
@@ -37,9 +37,9 @@ func GuardCreate(biz string, alias string, call func(bizID string, pub []byte, p
 		Usage:        0,
 		LstUsageTime: time.Now(),
 	}
-	err = hpg.Create[GuardM](zplt.HelixPgDB().PG(), guardM)
+	err = hdb.Create[GuardM](zplt.HelixPgDB().PG(), guardM)
 	if err != nil {
-		hlog.Err("hguard.GuardCreate: hpg.Create", zap.Error(err))
+		hlog.Err("hguard.GuardCreate: hdb.Create", zap.Error(err))
 		return err
 	}
 	gGuardPubLocalCache.Set(guardM.ID, &guardM.PubKey)
@@ -49,9 +49,9 @@ func GuardCreate(biz string, alias string, call func(bizID string, pub []byte, p
 func GuardVerify(id string, data []byte, signature string) error {
 	var pubKey []byte
 	ptrPubKey, err := gGuardPubLocalCache.GetSet(id, func() (*[]byte, error) {
-		guardM, err := hpg.Get[GuardM](zplt.HelixPgDB().PG(), "id = ?", id)
+		guardM, err := hdb.Get[GuardM](zplt.HelixPgDB().PG(), "id = ?", id)
 		if err != nil {
-			hlog.Err("hguard.GuardVerify: hpg.Get", zap.Error(err))
+			hlog.Err("hguard.GuardVerify: hdb.Get", zap.Error(err))
 			return nil, err
 		}
 		if guardM == nil {
@@ -81,7 +81,7 @@ func GuardVerify(id string, data []byte, signature string) error {
 		return errors.New("guard verify: valid")
 	}
 	go func() {
-		err := hpg.Update[GuardM](
+		err := hdb.Update[GuardM](
 			zplt.HelixPgDB().PG(),
 			map[string]interface{}{
 				"usage":          gorm.Expr("usage + 1"),
@@ -91,7 +91,7 @@ func GuardVerify(id string, data []byte, signature string) error {
 			id,
 		)
 		if err != nil {
-			hlog.Err("[ignore]hguard.GuardVerify: hpg.Update",
+			hlog.Err("[ignore]hguard.GuardVerify: hdb.Update",
 				zap.String("id", id),
 				zap.Error(err),
 			)

@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 func Register(code string) {
 	doRegister(code)

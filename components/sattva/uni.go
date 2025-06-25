@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/hootuu/helix/components/sattva/channel"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
@@ -23,9 +23,9 @@ func uniChannelRegister(chnType channel.Type, chnCode string, chnCfg channel.Con
 		return channel.IdNil, errors.New("invalid channel code[" + gChnCodeRegexpTpl + "]: " + chnCode)
 	}
 	chnID := channel.IdOf(chnType, chnCode)
-	chnM, err := hpg.Get[ChannelM](zplt.HelixPgDB().PG(), "id = ?", chnID)
+	chnM, err := hdb.Get[ChannelM](zplt.HelixPgDB().PG(), "id = ?", chnID)
 	if err != nil {
-		hlog.Err("sattva.uniChannelRegister: hpg.Get", zap.Error(err))
+		hlog.Err("sattva.uniChannelRegister: hdb.Get", zap.Error(err))
 		return channel.IdNil, err
 	}
 	if chnM == nil {
@@ -36,7 +36,7 @@ func uniChannelRegister(chnType channel.Type, chnCode string, chnCfg channel.Con
 			Config:    hjson.MustToBytes(chnCfg),
 			Available: true,
 		}
-		err = hpg.Create[ChannelM](zplt.HelixPgDB().PG(), chnM)
+		err = hdb.Create[ChannelM](zplt.HelixPgDB().PG(), chnM)
 		if err != nil {
 			hlog.Err("sattva.uniChannelRegister: Create", zap.Error(err))
 			return channel.IdNil, err
@@ -49,7 +49,7 @@ func uniChannelRegister(chnType channel.Type, chnCode string, chnCfg channel.Con
 		return chnID, nil
 	}
 
-	channelUsed, err := hpg.Exist[channel.IdChannelM](zplt.HelixPgDB().PG(),
+	channelUsed, err := hdb.Exist[channel.IdChannelM](zplt.HelixPgDB().PG(),
 		"channel = ?", chnID)
 	if err != nil {
 		hlog.Err("sattva.uniChannelRegister: check used", zap.Error(err))
@@ -62,7 +62,7 @@ func uniChannelRegister(chnType channel.Type, chnCode string, chnCfg channel.Con
 	mut := make(map[string]interface{})
 	mut["config"] = newCfgBytes
 	mut["available"] = true
-	err = hpg.Update[ChannelM](zplt.HelixPgDB().PG(), mut, "id = ?", chnID)
+	err = hdb.Update[ChannelM](zplt.HelixPgDB().PG(), mut, "id = ?", chnID)
 	if err != nil {
 		hlog.Err("sattva.uniChannelRegister: Update", zap.Error(err))
 		return channel.IdNil, err
@@ -82,7 +82,7 @@ func uniIdentificationCreate(chn *channel.Channel) (Identification, error) {
 		hlog.Err("sattva.doIdentificationCreate: handler.Wrap", zap.Error(err))
 		return IdNil, err
 	}
-	idChannelExist, err := hpg.Exist[channel.IdChannelM](zplt.HelixPgDB().PG(),
+	idChannelExist, err := hdb.Exist[channel.IdChannelM](zplt.HelixPgDB().PG(),
 		"channel = ? AND link = ?",
 		chnID, chn.Link,
 	)
@@ -102,17 +102,17 @@ func uniIdentificationCreate(chn *channel.Channel) (Identification, error) {
 		Link:    wrapChn.Link,
 		Paras:   hjson.MustToBytes(wrapChn.Paras),
 	}
-	err = hpg.Tx(zplt.HelixPgDB().PG(), func(tx *gorm.DB) error {
-		if err := hpg.Create[IdentificationM](tx, idM); err != nil {
+	err = hdb.Tx(zplt.HelixPgDB().PG(), func(tx *gorm.DB) error {
+		if err := hdb.Create[IdentificationM](tx, idM); err != nil {
 			return err
 		}
-		if err := hpg.Create[channel.IdChannelM](tx, idChannelM); err != nil {
+		if err := hdb.Create[channel.IdChannelM](tx, idChannelM); err != nil {
 			return err
 		}
 		return nil
 	})
 	if err != nil {
-		hlog.Err("sattva.doIdentificationCreate: hpg.Tx", zap.Any("channel", chn), zap.Error(err))
+		hlog.Err("sattva.doIdentificationCreate: hdb.Tx", zap.Any("channel", chn), zap.Error(err))
 		return IdNil, err
 	}
 	return idM.ID, nil

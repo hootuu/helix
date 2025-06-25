@@ -2,13 +2,13 @@ package horg
 
 import (
 	"github.com/hootuu/helix/components/sattva"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hypes/collar"
 	"gorm.io/datatypes"
 )
 
 type OrgM struct {
-	hpg.Basic
+	hdb.Basic
 	Biz       collar.ID      `gorm:"column:biz;index;not null;size:64;"`
 	Sovereign bool           `gorm:"column:sovereign;"`
 	ID        ID             `gorm:"column:id;primaryKey;"`
@@ -33,7 +33,7 @@ func (m *OrgM) ToOrganization() *Organization {
 }
 
 type OrgMemberM struct {
-	hpg.Basic
+	hdb.Basic
 	Org       ID                    `gorm:"column:org;uniqueIndex:uk_org_member;"`
 	Member    sattva.Identification `gorm:"column:member;uniqueIndex:uk_org_member;size:32;"`
 	Authority []AuthID              `gorm:"column:authority;serializer:json;"`
@@ -44,7 +44,7 @@ func (m *OrgMemberM) TableName() string {
 }
 
 type OrgAuthorityM struct {
-	hpg.Basic
+	hdb.Basic
 	Org     ID       `gorm:"column:org;uniqueIndex:uk_org_id;"`
 	InnerID AuthID   `gorm:"column:inner_id;uniqueIndex:uk_org_id;"`
 	Name    string   `gorm:"column:name;size:100"`

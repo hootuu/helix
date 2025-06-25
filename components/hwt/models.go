@@ -1,12 +1,12 @@
 package hwt
 
 import (
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"strings"
 )
 
 type RefreshTokenM struct {
-	hpg.Basic
+	hdb.Basic
 	RefreshToken string `gorm:"column:refresh_token;primaryKey;not null;size:88"`
 	Identity     string `gorm:"column:identity;uniqueIndex:uk_id_code;not null;size:32"`
 	Code         string `gorm:"column:code;uniqueIndex:uk_id_code;not null;size:32"`

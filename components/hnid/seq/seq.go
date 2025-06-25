@@ -3,7 +3,7 @@ package seq
 import (
 	"errors"
 	"github.com/hootuu/helix/components/zplt"
-	"github.com/hootuu/helix/storage/hpg"
+	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hretry"
 	"go.uber.org/zap"
@@ -50,13 +50,13 @@ func (seq *Sequence) refreshLocal() error {
 			}
 		})()
 
-	seqM, err := hpg.Get[SequenceM](zplt.HelixPgDB().PG(), "code = ?", seq.code)
+	seqM, err := hdb.Get[SequenceM](zplt.HelixPgDB().PG(), "code = ?", seq.code)
 	if err != nil {
-		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hpg.Get[SequenceM]", zap.Error(err))
+		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hdb.Get[SequenceM]", zap.Error(err))
 		return err
 	}
 	if seqM == nil {
-		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hpg.Get[SequenceM] seqM == nil")
+		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hdb.Get[SequenceM] seqM == nil")
 		return errors.New("no such seq data: code = " + seq.code)
 	}
 
@@ -70,7 +70,7 @@ func (seq *Sequence) refreshLocal() error {
 	if dbNewCurrent >= seqM.MaxEnd {
 		dbNewCurrent = seqM.MinStart
 	}
-	err = hpg.Update[SequenceM](zplt.HelixPgDB().PG(),
+	err = hdb.Update[SequenceM](zplt.HelixPgDB().PG(),
 		map[string]any{
 			"current_seq": dbNewCurrent,
 			"version":     seqM.Version + 1,
@@ -79,7 +79,7 @@ func (seq *Sequence) refreshLocal() error {
 		seqM.Code, seqM.Version,
 	)
 	if err != nil {
-		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hpg.Update[SequenceM]", zap.Error(err))
+		hlog.Err("helix.hnid.seq.PgSequence.refreshLocal: hdb.Update[SequenceM]", zap.Error(err))
 		return err
 	}
 

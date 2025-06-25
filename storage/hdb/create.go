@@ -1,4 +1,4 @@
-package hpg
+package hdb
 
 import (
 	"errors"
@@ -11,7 +11,7 @@ func Create[T any](dbTx *gorm.DB, model *T) error {
 	return doDbActWithRetry(func() error {
 		tx := dbTx.Create(model)
 		if tx.Error != nil {
-			hlog.Err("hpg.Create", zap.Any("model", model), zap.Error(tx.Error))
+			hlog.Err("hdb.Create", zap.Any("model", model), zap.Error(tx.Error))
 			return errors.New("db create error: " + tx.Error.Error())
 		}
 		return nil
@@ -23,7 +23,7 @@ func MultiCreate[T any](dbTx *gorm.DB, arr []*T) error {
 		var model T
 		tx := dbTx.Model(&model).Create(&arr)
 		if tx.Error != nil {
-			hlog.Err("hpg.MultiCreate", zap.Any("arr", arr), zap.Error(tx.Error))
+			hlog.Err("hdb.MultiCreate", zap.Any("arr", arr), zap.Error(tx.Error))
 			return errors.New("db create multi error: " + tx.Error.Error())
 		}
 		return nil
@@ -33,7 +33,7 @@ func MultiCreate[T any](dbTx *gorm.DB, arr []*T) error {
 func GetOrCreate[T any](dbTx *gorm.DB, model *T, cond ...any) error {
 	err := dbTx.FirstOrCreate(model, cond...).Error
 	if err != nil {
-		hlog.Err("hpg.GetOrCreate", zap.Any("model", model), zap.Error(err))
+		hlog.Err("hdb.GetOrCreate", zap.Any("model", model), zap.Error(err))
 		return err
 	}
 	return nil
