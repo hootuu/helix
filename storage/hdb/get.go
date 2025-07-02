@@ -30,6 +30,17 @@ func Exist[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) (bool, 
 	return b, nil
 }
 
+func MustExist[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) error {
+	b, err := Exist[T](dbTx, query, args...)
+	if err != nil {
+		return err
+	}
+	if !b {
+		return errors.New("no such record")
+	}
+	return nil
+}
+
 func ExistWithTable(dbTx *gorm.DB, query interface{}, args ...interface{}) (bool, error) {
 	var b bool
 	tx := dbTx.Select("1").Where(query, args...).Limit(1).Find(&b)

@@ -110,6 +110,7 @@ func (t *Tree) NextID(parent ID) (ID, error) {
 		return nil
 	})
 	if err != nil {
+		hlog.Err("[ignore]helix.tree.Next: NextID", zap.Error(err))
 		return 0, err
 	}
 	return id, nil

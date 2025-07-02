@@ -3,6 +3,8 @@ package htree
 import (
 	"errors"
 	"fmt"
+	"github.com/hootuu/hyle/hlog"
+	"go.uber.org/zap"
 	"math"
 )
 
@@ -93,6 +95,12 @@ func (f *IdFactory) Next(id ID, seq int64) (ID, error) {
 	}
 	nxt := id + seq*base
 	if nxt < minId || nxt > maxId {
+		hlog.Err("helix.tree.f.Next: invalid seq",
+			zap.Int64("seq", seq),
+			zap.Int64("min", minId),
+			zap.Int64("max", maxId),
+			zap.Int64("base", base),
+			zap.Int64("nxt", nxt))
 		return 0, fmt.Errorf("invalid seq: %d", seq)
 	}
 	return nxt, nil
