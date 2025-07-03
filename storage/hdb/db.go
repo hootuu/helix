@@ -7,7 +7,7 @@ import (
 	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hsys"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"sync"
 	"time"
@@ -33,8 +33,11 @@ func (db *Database) startup() (context.Context, error) {
 	err := retry.Do(
 		func() error {
 			var err error
+			//postgres.Open(hcfg.GetString("pg."+db.code+".dns", "host=localhost dbname="+db.code+" port=3306 sslmode=disable")),
+			defDsn := "root:88888888@tcp(127.0.0.1:3306)/helix_mysql?charset=utf8mb4&parseTime=True&loc=Local"
+			dbDsn := hcfg.GetString("pg."+db.code+".dns", defDsn)
 			db.pgDB, err = gorm.Open(
-				postgres.Open(hcfg.GetString("pg."+db.code+".dns", "host=localhost dbname="+db.code+" port=5432 sslmode=disable")),
+				mysql.Open(dbDsn),
 				&gorm.Config{
 					SkipDefaultTransaction:                   hcfg.GetBool("pg."+db.code+".skip.default.transaction", false),
 					NamingStrategy:                           nil,

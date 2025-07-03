@@ -22,12 +22,12 @@ const (
 
 type OnceM struct {
 	hdb.Basic
-	OnceCode    string      `gorm:"column:once_code;primaryKey;not null;size:128"`
-	DoServerID  string      `gorm:"column:do_serv_id;index;not null;size:32"`
-	DoStatus    Status      `gorm:"column:do_status"`
-	DoStartTime time.Time   `gorm:"column:do_start_time;;not null"`
-	DoEndTime   time.Time   `gorm:"column:do_end_time;;not null"`
-	Version     hdb.Version `gorm:"column:version;default:0"`
+	OnceCode    string      `gorm:"column:once_code;primaryKey;not null;size:128;"`
+	DoServerID  string      `gorm:"column:do_serv_id;index;not null;size:32;"`
+	DoStatus    Status      `gorm:"column:do_status;"`
+	DoStartTime time.Time   `gorm:"column:do_start_time;not null;"`
+	DoEndTime   *time.Time  `gorm:"column:do_end_time;"`
+	Version     hdb.Version `gorm:"column:version;default:0;"`
 }
 
 func (m *OnceM) TableName() string {

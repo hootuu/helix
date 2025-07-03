@@ -22,7 +22,7 @@ func PageFind[T any](page *pagination.Page, find func() *gorm.DB) (*pagination.P
 	if page == nil {
 		page = pagination.PageNormal()
 	}
-	var arr []*T
+	var arr []T
 	var count int64
 	countTx := find().Count(&count)
 	if countTx.Error != nil {

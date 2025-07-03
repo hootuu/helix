@@ -77,6 +77,7 @@ func doRegister(helix Helix) {
 		if err != nil {
 			hlog.Err("runtime start helix failed", zap.String("code", helix.code), zap.Error(err))
 			hsys.Error("# Runtime Start helix exception: [", helix.code, "] #")
+			hsys.Exit(err)
 			return
 		}
 		helix.ctx = ctx

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	helixDb = "helix_pg"
+	helixDb = "helix_mysql"
 )
 
 func HelixPgDB() *hdb.Database {
