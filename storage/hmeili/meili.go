@@ -36,10 +36,10 @@ func (m *Meili) Meili() meilisearch.ServiceManager {
 func (m *Meili) doInit() {
 	host := hcfg.GetString(m.cfg("host"), "http://127.0.0.1:7700")
 	var options []meilisearch.Option
-	options = append(options, meilisearch.WithAPIKey(hcfg.GetString("api.key")))
+	options = append(options, meilisearch.WithAPIKey(hcfg.GetString(m.cfg("api.key"))))
 	m.meili = meilisearch.New(host, options...)
 }
 
 func (m *Meili) cfg(prefix string) string {
-	return fmt.Sprintf("hmeili.%s..%s", strings.ToLower(m.Code), prefix)
+	return fmt.Sprintf("hmeili.%s.%s", strings.ToLower(m.Code), prefix)
 }
