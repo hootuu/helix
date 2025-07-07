@@ -14,11 +14,10 @@ func main() {
 		nsqMQ := hnsq.NewNsqMQ()
 		mq := hmq.NewMQ("main_mq", nsqMQ)
 		thisP := mq.NewProducer()
-		err := thisP.Startup()
+		err := mq.RegisterProducer(thisP)
 		if err != nil {
 			panic(err)
 		}
-		defer thisP.Shutdown()
 
 		thisC := mq.NewConsumer("b", "topic_a", "1").
 			WithHandler(func(msg *hmq.Message) error {
