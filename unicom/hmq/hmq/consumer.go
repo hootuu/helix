@@ -25,11 +25,13 @@ type Consumer struct {
 	wg          sync.WaitGroup
 }
 
-func NewConsumer(code string, topic Topic, channel Channel) *Consumer {
+func newConsumer(code string, topic Topic, channel Channel, core ConsumerCore) *Consumer {
 	return &Consumer{
-		code:    code,
-		topic:   topic,
-		channel: channel,
+		code:        code,
+		topic:       topic,
+		channel:     channel,
+		core:        core,
+		handlerFunc: func(msg *Message) error { return nil },
 	}
 }
 
@@ -53,11 +55,6 @@ func (c *Consumer) Handle(msg *Message) error {
 		gMqCLogger.Info(c.code, zap.Int64("_elapse", time.Since(start).Milliseconds()))
 	}()
 	return c.handlerFunc(msg)
-}
-
-func (c *Consumer) With(core ConsumerCore) *Consumer {
-	c.core = core
-	return c
 }
 
 func (c *Consumer) WithHandler(handlerFunc func(msg *Message) error) *Consumer {

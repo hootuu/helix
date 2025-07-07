@@ -12,13 +12,15 @@ import (
 type Core interface {
 	Startup(self *MQ) (context.Context, error)
 	Shutdown(ctx context.Context)
+	NewProducer() ProducerCore
+	NewConsumer() ConsumerCore
 }
 
 type MQ struct {
 	Code        string
 	core        Core
-	producerMap map[string]*Producer
-	consumerMap map[string]*Consumer
+	consumerArr []*Consumer
+	producerArr []*Producer
 	mu          sync.Mutex
 }
 
@@ -41,11 +43,8 @@ func (mq *MQ) startup() (context.Context, error) {
 
 func (mq *MQ) shutdown(ctx context.Context) {
 	if mq.core != nil {
-		if len(mq.producerMap) > 0 {
-			for _, producer := range mq.producerMap {
-				producer.shutdown()
-			}
-			for _, consumer := range mq.consumerMap {
+		if len(mq.consumerArr) > 0 {
+			for _, consumer := range mq.consumerArr {
 				consumer.shutdown()
 			}
 		}
@@ -53,20 +52,23 @@ func (mq *MQ) shutdown(ctx context.Context) {
 	}
 }
 
+func (mq *MQ) NewProducer() *Producer {
+	return newProducer(mq.core.NewProducer())
+}
+
+func (mq *MQ) NewConsumer(code string, topic Topic, channel Channel) *Consumer {
+	return newConsumer(code, topic, channel, mq.core.NewConsumer())
+}
+
 func (mq *MQ) RegisterProducer(p *Producer) error {
 	err := p.startup()
 	if err != nil {
-		hlog.Err("hmq.RegisterProducer", zap.Error(err))
+		hlog.Err("hmq.RegisterConsumer", zap.Error(err))
 		return err
 	}
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
-	if mq.producerMap == nil {
-		mq.producerMap = make(map[string]*Producer)
-	}
-	if _, ok := mq.producerMap[p.code]; !ok {
-		mq.producerMap[p.code] = p
-	}
+	mq.producerArr = append(mq.producerArr, p)
 	return nil
 }
 
@@ -78,11 +80,6 @@ func (mq *MQ) RegisterConsumer(c *Consumer) error {
 	}
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
-	if mq.consumerMap == nil {
-		mq.consumerMap = make(map[string]*Consumer)
-	}
-	if _, ok := mq.consumerMap[c.code]; !ok {
-		mq.consumerMap[c.code] = c
-	}
+	mq.consumerArr = append(mq.consumerArr, c)
 	return nil
 }

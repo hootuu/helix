@@ -16,11 +16,11 @@ func NewNsqMQ() *NsqMQ {
 	return &NsqMQ{}
 }
 
-func (n *NsqMQ) NewProducer() *Producer {
+func (n *NsqMQ) NewProducer() hmq.ProducerCore {
 	return newProducer(n)
 }
 
-func (n *NsqMQ) NewConsumer() *Consumer {
+func (n *NsqMQ) NewConsumer() hmq.ConsumerCore {
 	return newConsumer(n)
 }
 

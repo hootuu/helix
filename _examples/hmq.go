@@ -13,16 +13,18 @@ func main() {
 	helix.AfterStartup(func() {
 		nsqMQ := hnsq.NewNsqMQ()
 		mq := hmq.NewMQ("main_mq", nsqMQ)
-		thisP := hmq.NewProducer("a", "topic_a").With(nsqMQ.NewProducer())
-		err := mq.RegisterProducer(thisP)
+		thisP := mq.NewProducer()
+		err := thisP.Startup()
 		if err != nil {
 			panic(err)
 		}
-		thisC := hmq.NewConsumer("b", "topic_a", "1").
-			With(nsqMQ.NewConsumer()).WithHandler(func(msg *hmq.Message) error {
-			fmt.Println("====>>>>>>>", string(msg.Payload[:]))
-			return nil
-		})
+		defer thisP.Shutdown()
+
+		thisC := mq.NewConsumer("b", "topic_a", "1").
+			WithHandler(func(msg *hmq.Message) error {
+				fmt.Println("[REV]====>>>>>>>", string(msg.Payload[:]))
+				return nil
+			})
 		err = mq.RegisterConsumer(thisC)
 		if err != nil {
 			panic(err)
@@ -38,7 +40,7 @@ func main() {
 					idx++
 					mu.Unlock()
 					msg := fmt.Sprintf("hello world %d", cur)
-					err = thisP.Publish([]byte(msg))
+					err = thisP.Publish("topic_a", []byte(msg))
 					if err != nil {
 						fmt.Println(err)
 					}
