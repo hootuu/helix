@@ -1,7 +1,6 @@
 package hcanal
 
 import (
-	"fmt"
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/hootuu/hyle/hretry"
 	"time"
@@ -73,11 +72,9 @@ func (h *Canal) String() string {
 
 func (h *Canal) focusRowsEvent(handler AlterHandler, event *canal.RowsEvent) bool {
 	fSchema := handler.Schema()
-	fmt.Println("focus", fSchema)
 	if fSchema != event.Table.Schema {
 		return false
 	}
-	fmt.Println("focust: ", event.Table.Schema)
 	fTable := handler.Table()
 	if len(fTable) > 0 {
 		beIn := false
