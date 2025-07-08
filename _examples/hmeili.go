@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/hootuu/helix/components/zplt"
+	"github.com/hootuu/helix/components/zplt/zmeili"
 	"github.com/hootuu/helix/helix"
 	"github.com/hootuu/helix/storage/hmeili"
 	"github.com/hootuu/hyle/data/hjson"
@@ -27,7 +27,7 @@ func (m MeiliDocTest) GetTimestamp() int64 {
 
 func main() {
 	helix.AfterStartup(func() {
-		meili := zplt.HelixMeili()
+		meili := zmeili.HelixMeili()
 		//_, err := meili.Meili().Index("meili_test").UpdateSortableAttributes(&[]string{"auto_id"})
 		//if err != nil {
 		//	log.Fatalf("更新可排序字段失败: %v", err)

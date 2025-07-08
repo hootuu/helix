@@ -9,6 +9,7 @@ import (
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"math/rand"
+	"sync"
 )
 
 type Canal struct {
@@ -16,12 +17,19 @@ type Canal struct {
 	canal.DummyEventHandler
 	alterHandlerArr []AlterHandler
 	core            *canal.Canal
+	mu              sync.Mutex
 }
 
 func New(code string, alterHandler ...AlterHandler) *Canal {
 	h := &Canal{Code: code, alterHandlerArr: alterHandler}
 	helix.Use(h.Helix())
 	return h
+}
+
+func (h *Canal) RegisterAlterHandler(handler ...AlterHandler) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.alterHandlerArr = append(h.alterHandlerArr, handler...)
 }
 
 func (h *Canal) Helix() helix.Helix {
@@ -61,8 +69,14 @@ func (h *Canal) Startup() (context.Context, error) {
 
 	h.core.SetEventHandler(h)
 
+	//todo
+	masterPos, err := h.core.GetMasterPos()
+	if err != nil {
+		hlog.Err("helix.canal: Get master position error", zap.Error(err))
+		return nil, err
+	}
 	go func() {
-		err := h.core.Run()
+		err := h.core.RunFrom(masterPos)
 		if err != nil {
 			hlog.Err("helix.canal.Startup", zap.String("code", h.Code), zap.Error(err))
 		}

@@ -2,33 +2,33 @@ package hcanal
 
 import (
 	"github.com/go-mysql-org/go-mysql/canal"
+	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hretry"
-	"time"
+	"github.com/spf13/cast"
+	"strings"
 )
-
-func (h *Canal) registerAlterHandler(alter ...AlterHandler) {
-	h.alterHandlerArr = append(h.alterHandlerArr, alter...)
-}
 
 func (h *Canal) OnRow(event *canal.RowsEvent) error {
 	if len(event.Table.Columns) == 0 || len(event.Rows) == 0 {
+		hlog.Err("hcanal.OnRow: no columns or rows")
 		return nil
 	}
 	if len(h.alterHandlerArr) == 0 {
+		hlog.Logger().Warn("hcanal.OnRow: len(h.alterHandlerArr) == 0")
 		return nil
 	}
 	var focusHandler []AlterHandler
 	for _, handler := range h.alterHandlerArr {
 		if b := h.focusRowsEvent(handler, event); !b {
-			return nil
+			continue
 		}
 		focusHandler = append(focusHandler, handler)
 	}
 	if len(focusHandler) == 0 {
+		//hlog.Info("hcanal.OnRow: len(h.alterHandlerArr) == 0")
 		return nil
 	}
 	alter := &Alter{
-		Schema:   event.Table.Schema,
 		Table:    event.Table.Name,
 		Action:   event.Action,
 		Entities: nil,
@@ -47,10 +47,10 @@ func (h *Canal) OnRow(event *canal.RowsEvent) error {
 	for _, row := range event.Rows {
 		entity := &Entity{}
 		if len(row) > autoIdIdx && row[autoIdIdx] != nil {
-			entity.AutoID = row[autoIdIdx].(uint64)
+			entity.AutoID = row[autoIdIdx].(int64)
 		}
 		if len(row) > timestampIdx && row[timestampIdx] != nil {
-			entity.Timestamp = row[timestampIdx].(time.Time)
+			entity.Timestamp = cast.ToTime(row[timestampIdx]).UnixMilli()
 		}
 		alter.Entities = append(alter.Entities, entity)
 	}
@@ -71,10 +71,6 @@ func (h *Canal) String() string {
 }
 
 func (h *Canal) focusRowsEvent(handler AlterHandler, event *canal.RowsEvent) bool {
-	fSchema := handler.Schema()
-	if fSchema != event.Table.Schema {
-		return false
-	}
 	fTable := handler.Table()
 	if len(fTable) > 0 {
 		beIn := false
@@ -92,7 +88,7 @@ func (h *Canal) focusRowsEvent(handler AlterHandler, event *canal.RowsEvent) boo
 	if len(fAction) > 0 {
 		beIn := false
 		for _, action := range fAction {
-			if action == event.Action {
+			if strings.EqualFold(action, event.Action) {
 				beIn = true
 				break
 			}

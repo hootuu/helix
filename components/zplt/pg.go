@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	helixDb = "helix_mysql"
+	HelixMainDB = "helix_mysql"
 )
 
 func HelixPgDB() *hdb.Database {
-	return hdb.GetDatabase(helixDb)
+	return hdb.GetDatabase(HelixMainDB)
 }
 
 func HelixPgCtx(ctx context.Context) *gorm.DB {
@@ -27,5 +27,5 @@ func HelixPgTx(ctx ...context.Context) context.Context {
 }
 
 func init() {
-	hdb.Register(helixDb)
+	hdb.Register(HelixMainDB)
 }

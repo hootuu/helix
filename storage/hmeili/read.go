@@ -6,11 +6,42 @@ import (
 	"go.uber.org/zap"
 )
 
+func Filter(
+	meili *Meili,
+	indexName string,
+	filter string,
+	sort []string,
+	page *pagination.Page,
+) (*pagination.Pagination[any], error) {
+	paging := pagination.PagingOfPage(page)
+	req := &SearchRequest{
+		Offset: paging.Skip(),
+		Limit:  paging.Limit(),
+		Query:  "",
+		Filter: filter,
+		Sort:   sort,
+	}
+	if len(req.Sort) == 0 {
+		req.Sort = []string{"auto_id:desc"}
+	}
+	req.Offset = paging.Skip()
+	req.Limit = paging.Limit()
+
+	index := meili.Meili().Index(indexName)
+	result, err := index.Search("", req)
+	if err != nil {
+		hlog.Err("hmeili.Find", zap.Error(err))
+		return nil, err
+	}
+	paging.WithCount(result.EstimatedTotalHits)
+	return pagination.NewPagination(paging, result.Hits), nil
+}
+
 func Find(meili *Meili, indexName string, req *SearchRequest, page *pagination.Page) (*pagination.Pagination[any], error) {
 	paging := pagination.PagingOfPage(page)
 	if req == nil {
 		req = &SearchRequest{
-			Query: "*",
+			Query: "",
 			Sort:  []string{"auto_id:asc"},
 		}
 	}
@@ -23,6 +54,8 @@ func Find(meili *Meili, indexName string, req *SearchRequest, page *pagination.P
 		hlog.Err("hmeili.Find", zap.Error(err))
 		return nil, err
 	}
+
+	paging.WithCount(result.TotalHits)
 	//
 	//data, err := result.MarshalJSON()
 	//if err != nil {

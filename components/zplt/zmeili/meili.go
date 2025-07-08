@@ -1,4 +1,4 @@
-package zplt
+package zmeili
 
 import (
 	"github.com/hootuu/helix/storage/hmeili"
