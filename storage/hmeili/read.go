@@ -15,11 +15,11 @@ func Filter(
 ) (*pagination.Pagination[any], error) {
 	paging := pagination.PagingOfPage(page)
 	req := &SearchRequest{
-		Offset: paging.Skip(),
-		Limit:  paging.Limit(),
-		Query:  "",
-		Filter: filter,
-		Sort:   sort,
+		Offset:              paging.Skip(),
+		Limit:               paging.Limit(),
+		Filter:              filter,
+		Sort:                sort,
+		ShowMatchesPosition: true,
 	}
 	if len(req.Sort) == 0 {
 		req.Sort = []string{"auto_id:desc"}

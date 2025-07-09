@@ -27,7 +27,6 @@ func (m MeiliDocTest) GetTimestamp() int64 {
 
 func main() {
 	helix.AfterStartup(func() {
-		meili := zmeili.HelixMeili()
 		//_, err := meili.Meili().Index("meili_test").UpdateSortableAttributes(&[]string{"auto_id"})
 		//if err != nil {
 		//	log.Fatalf("更新可排序字段失败: %v", err)

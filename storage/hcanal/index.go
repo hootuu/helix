@@ -4,6 +4,7 @@ import (
 	"github.com/hootuu/helix/storage/hmeili"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
+	"strings"
 )
 
 type IndexSyncHandler struct {
@@ -29,17 +30,30 @@ func (h *IndexSyncHandler) Table() []string {
 }
 
 func (h *IndexSyncHandler) Action() []string {
-	return []string{"INSERT", "UPDATE"}
+	return []string{"INSERT", "UPDATE", "DELETE"}
 }
 
 func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 	var curAutoID int64
 	defer hlog.Elapse("canal.idx.sync",
 		hlog.F(zap.String("table", alter.Table), zap.String("action", alter.Action)),
-		hlog.E(err, zap.Int64("curAutoID", curAutoID)))()
+		hlog.E(err, zap.Int64("lstAutoID", curAutoID)))()
 	if len(alter.Entities) == 0 {
 		return nil
 	}
+	if strings.EqualFold(alter.Action, "DELETE") {
+		var autoIDs []int64
+		for _, entity := range alter.Entities {
+			autoIDs = append(autoIDs, entity.AutoID)
+			curAutoID = entity.AutoID
+		}
+		err = hmeili.DelDocuments(h.meili, h.indexer, autoIDs)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	var docArr []hmeili.Document
 	for _, entity := range alter.Entities {
 		doc, err := h.indexer.Load(entity.AutoID)
@@ -47,6 +61,7 @@ func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 			return err
 		}
 		docArr = append(docArr, doc)
+		curAutoID = entity.AutoID
 	}
 	err = hmeili.AddDocuments(h.meili, h.indexer, docArr)
 	if err != nil {

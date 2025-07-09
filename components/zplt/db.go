@@ -10,6 +10,11 @@ const (
 	HelixMainDB = "helix_mysql"
 )
 
+func HelixDB() *hdb.Database {
+	return hdb.GetDatabase(HelixMainDB)
+}
+
+// todo - del
 func HelixPgDB() *hdb.Database {
 	return hdb.GetDatabase(HelixMainDB)
 }

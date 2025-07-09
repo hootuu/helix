@@ -89,6 +89,13 @@ func (db *Database) PG() *gorm.DB {
 	return db.pgDB
 }
 
+func (db *Database) DB() *gorm.DB {
+	if hsys.RunMode().IsDev() {
+		return db.pgDB.Debug()
+	}
+	return db.pgDB
+}
+
 var gPostgresDbMap = make(map[string]*Database)
 var gPostgresDbMutex sync.Mutex
 
