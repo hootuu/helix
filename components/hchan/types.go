@@ -7,11 +7,12 @@ type ID = htree.ID
 const Root ID = 0
 
 type Channel struct {
-	ID       ID         `json:"id"`
-	Name     string     `json:"name"`
-	Icon     string     `json:"icon"`
-	Seq      int        `json:"seq"`
-	Children []*Channel `json:"children"`
+	ID        ID         `json:"id"`
+	Name      string     `json:"name"`
+	Icon      string     `json:"icon"`
+	Seq       int        `json:"seq"`
+	Available bool       `json:"available"`
+	Children  []*Channel `json:"children"`
 }
 
 func (c *Channel) AddChild(child *Channel) *Channel {

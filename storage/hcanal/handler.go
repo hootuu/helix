@@ -1,7 +1,6 @@
 package hcanal
 
 import (
-	"fmt"
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hretry"
@@ -10,7 +9,6 @@ import (
 )
 
 func (h *Canal) OnRow(event *canal.RowsEvent) error {
-	fmt.Println(event.Table, event.Action)
 	if len(event.Table.Columns) == 0 || len(event.Rows) == 0 {
 		hlog.Err("hcanal.OnRow: no columns or rows")
 		return nil

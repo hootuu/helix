@@ -44,7 +44,11 @@ func newFactory(
 	return c, nil
 }
 
-func (f *Factory) Add(parent htree.ID, name string, icon string, seq int) (htree.ID, error) {
+func (f *Factory) Root() ID {
+	return f.tree.Root()
+}
+
+func (f *Factory) Add(parent ID, name string, icon string, seq int) (ID, error) {
 	if name == "" {
 		return 0, errors.New("require name")
 	}
@@ -67,11 +71,12 @@ func (f *Factory) Add(parent htree.ID, name string, icon string, seq int) (htree
 		return -1, err
 	}
 	chanM := &ChanM{
-		ID:     newID,
-		Parent: parent,
-		Name:   name,
-		Icon:   icon,
-		Seq:    seq,
+		ID:        newID,
+		Parent:    parent,
+		Name:      name,
+		Icon:      icon,
+		Seq:       seq,
+		Available: true,
 	}
 	err = hdb.Create[ChanM](f.table(), chanM)
 	if err != nil {
@@ -80,7 +85,7 @@ func (f *Factory) Add(parent htree.ID, name string, icon string, seq int) (htree
 	return chanM.ID, nil
 }
 
-func (f *Factory) Mut(id htree.ID, name string, icon string, seq int) error {
+func (f *Factory) Mut(id ID, name string, icon string, seq int) error {
 	if name == "" {
 		return errors.New("require name")
 	}
@@ -116,7 +121,43 @@ func (f *Factory) Mut(id htree.ID, name string, icon string, seq int) error {
 	return nil
 }
 
-func (f *Factory) Get(parent htree.ID, deep int) ([]*Channel, error) {
+func (f *Factory) SetAvailable(id ID, available bool) error {
+	dbM, err := hdb.MustGet[ChanM](f.table(), "id = ?", id)
+	if err != nil {
+		return err
+	}
+	if dbM.Available == available {
+		return nil
+	}
+	mut := map[string]any{
+		"available": available,
+	}
+	err = hdb.Update[ChanM](f.table(), mut, "id = ?", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *Factory) SetSeq(id ID, seq int) error {
+	dbM, err := hdb.MustGet[ChanM](f.table(), "id = ?", id)
+	if err != nil {
+		return err
+	}
+	if dbM.Seq == seq {
+		return nil
+	}
+	mut := map[string]any{
+		"seq": seq,
+	}
+	err = hdb.Update[ChanM](f.table(), mut, "id = ?", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *Factory) GetChildren(parent ID, deep int) ([]*Channel, error) {
 	if deep < 1 || deep > f.tree.Factory().IdDeep() {
 		return nil, fmt.Errorf("invalid deep: %d", deep)
 	}
@@ -139,8 +180,8 @@ func (f *Factory) Get(parent htree.ID, deep int) ([]*Channel, error) {
 	if newDeep <= 0 {
 		return arr, nil
 	}
-	for _, categ := range arr {
-		categ.Children, err = f.Get(categ.ID, newDeep)
+	for _, ch := range arr {
+		ch.Children, err = f.GetChildren(ch.ID, newDeep)
 		if err != nil {
 			return nil, err
 		}
