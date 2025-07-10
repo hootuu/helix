@@ -14,6 +14,7 @@ require (
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/redis/go-redis/v9 v9.8.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cast v1.7.1
 	go.uber.org/zap v1.27.0
 	gorm.io/datatypes v1.2.5
