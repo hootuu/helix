@@ -13,6 +13,7 @@ import (
 func main() {
 	helix.AfterStartup(func() {
 		hchanExample()
+		hchanRunning()
 	})
 	helix.Startup()
 }
@@ -69,22 +70,25 @@ func hchanExample() {
 }
 
 func hchanRunning() {
-	f, err := hchan.NewFactory("test")
+	f, err := hchan.NewFactory("test2")
 	if err != nil {
 		panic(err)
 	}
+	s := time.Now()
 	for i := 0; i < 100; i++ {
 		c, err := f.Add(0, "CHANNEL-"+cast.ToString(i), "https://icon.cn", i)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(c)
+		//fmt.Println(c)
 		for j := 0; j < 100; j++ {
-			c2, err := f.Add(c, "CHANNEL-"+cast.ToString(i)+"-"+cast.ToString(j), "https://icon.cn", j)
+			_, err := f.Add(c, "CHANNEL-"+cast.ToString(i)+"-"+cast.ToString(j), "https://icon.cn", j)
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(c2)
+			//fmt.Println(c2)
 		}
 	}
+	e := time.Since(s).Milliseconds()
+	fmt.Println(e, " ->", e/10000)
 }

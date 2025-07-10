@@ -1,6 +1,7 @@
 package hdb
 
 import (
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
 )
@@ -18,4 +19,14 @@ type Basic struct {
 	CreatedAt time.Time      `gorm:"column:created_at;index;autoCreateTime"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;index;autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
+}
+
+type Template struct {
+	AutoID    int64          `gorm:"column:auto_id;uniqueIndex;autoIncrement"`
+	CreatedAt time.Time      `gorm:"column:created_at;index;autoCreateTime"`
+	UpdatedAt time.Time      `gorm:"column:updated_at;index;autoUpdateTime"`
+	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at;index"`
+	Ctrl      []byte         `gorm:"column:ctrl;not null;size:128;"`
+	Tag       datatypes.JSON `gorm:"column:tag;type:jsonb;"`
+	Meta      datatypes.JSON `gorm:"column:meta;type:jsonb;"`
 }

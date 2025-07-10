@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	idxVersion = "1.0.0"
+	idxVersion = "1.0.1"
 )
 
 type channelIndexer struct {
@@ -33,6 +33,7 @@ func (idx *channelIndexer) Setting(index meilisearch.IndexManager) error {
 		"auto_id",
 		"id",
 		"parent",
+		"available",
 	}
 	_, err := index.UpdateFilterableAttributes(&filterableAttributes)
 	if err != nil {
@@ -65,6 +66,7 @@ func (idx *channelIndexer) Load(autoID int64) (hmeili.Document, error) {
 	doc["name"] = m.Name
 	doc["icon"] = m.Icon
 	doc["seq"] = m.Seq
+	doc["available"] = m.Available
 	if len(m.Ctrl) > 0 {
 		doc["ctrl"] = m.Ctrl
 	}
