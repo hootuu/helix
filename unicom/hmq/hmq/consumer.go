@@ -48,11 +48,11 @@ func (c *Consumer) Channel() Channel {
 }
 
 func (c *Consumer) Handle(msg *Message) error {
-	gMqCLogger.Info(c.code, zap.String("code", c.code), zap.String("id", msg.ID),
+	gMqCLogger.Info(msg.ID, zap.String("code", c.code), zap.String("id", msg.ID),
 		zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)))
 	start := time.Now()
 	defer func() {
-		gMqCLogger.Info(c.code, zap.Int64("_elapse", time.Since(start).Milliseconds()))
+		gMqCLogger.Info(msg.ID, zap.Int64("_elapse", time.Since(start).Milliseconds()))
 	}()
 	return c.handlerFunc(msg)
 }

@@ -22,7 +22,7 @@ func newProducer(core ProducerCore) *Producer {
 }
 
 func (p *Producer) Publish(topic Topic, payload Payload) error {
-	gMqPLogger.Info(string(topic), zap.String("topic", string(topic)))
+	gMqPLogger.Info("publish", zap.String("topic", string(topic)))
 	if p.core == nil {
 		return errors.New("must set producer core")
 	}

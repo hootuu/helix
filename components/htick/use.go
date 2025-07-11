@@ -2,10 +2,35 @@ package htick
 
 import (
 	"errors"
+	"github.com/hootuu/helix/unicom/hmq/hmq"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hretry"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"time"
 )
+
+func Once(targetTime time.Time, topic hmq.Topic, p hmq.Payload) error {
+	duration := time.Until(targetTime)
+	_ = time.AfterFunc(duration, func() {
+		job := &Job{
+			Expression: Expression(cast.ToString(targetTime)),
+			Topic:      topic,
+			Payload:    p,
+		}
+		err := hretry.Must(func() error {
+			err := triggerTick(job)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			hlog.Fix("htick.Once.Job", zap.Any("job", job), zap.Error(err))
+		}
+	})
+	return nil
+}
 
 func Schedule(job *Job) error {
 	if job == nil {
@@ -23,7 +48,7 @@ func Schedule(job *Job) error {
 			return nil
 		})
 		if err != nil {
-			hlog.Fix("htick.Job", zap.Any("job", job), zap.Error(err))
+			hlog.Fix("htick.Schedule.Job", zap.Any("job", job), zap.Error(err))
 		}
 	})
 	if err != nil {

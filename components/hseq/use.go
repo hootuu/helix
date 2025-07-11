@@ -9,7 +9,7 @@ import (
 )
 
 func Next(ctx context.Context, biz collar.Collar) (ID, error) {
-	bizID := biz.ToID()
+	bizID := biz.ToSafeID()
 	tx := zplt.HelixPgCtx(ctx)
 	seqM, err := hdb.Get[SeqM](tx, "biz = ?", bizID)
 	if err != nil {
