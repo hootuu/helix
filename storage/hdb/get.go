@@ -36,6 +36,7 @@ func MustExist[T any](dbTx *gorm.DB, query interface{}, args ...interface{}) err
 		return err
 	}
 	if !b {
+		hlog.Err("hdb.MustExist", zap.Any("query", query), zap.Any("args", args))
 		return errors.New("no such record")
 	}
 	return nil
