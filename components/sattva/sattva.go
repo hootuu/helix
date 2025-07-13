@@ -44,12 +44,20 @@ func (s *Sattva) RegisterChannel(chnType channel.Type, chnCode string, cfg chann
 	return uniChannelRegister(chnType, chnCode, cfg)
 }
 
-func (s *Sattva) IdentificationCreate(chn *channel.Channel) (Identification, error) {
-	return uniIdentificationCreate(chn)
+func (s *Sattva) IdentificationCreate(chn *channel.Channel, info dict.Dict) (Identification, error) {
+	return uniIdentificationCreate(chn, info)
 }
 
-func (s *Sattva) Identify(chn *channel.Channel) (bool, error) {
+func (s *Sattva) Identify(chn *channel.Channel) (bool, Identification, error) {
 	return uniIdentify(chn)
+}
+
+func (s *Sattva) SetInfo(id Identification, info dict.Dict) error {
+	return uniSetInfo(id, info)
+}
+
+func (s *Sattva) GetInfo(id Identification) (dict.Dict, error) {
+	return uniGetInfo(id)
 }
 
 func (s *Sattva) GetAttribute(id Identification, attr ...string) (dict.Dict, error) {

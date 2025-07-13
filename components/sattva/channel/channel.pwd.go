@@ -12,7 +12,6 @@ import (
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
-	"regexp"
 	"strings"
 )
 
@@ -57,15 +56,9 @@ func newPwdHandler(encryptPwdBytes []byte) *PwdHandler {
 	}
 }
 
-const gPwdModLinkRegexpTpl = `^[a-zA-Z0-9_@.-]{1,32}$`
-
-var gPwdModLinkRegexp = regexp.MustCompile(gPwdModLinkRegexpTpl)
-
 func (h *PwdHandler) Wrap(input *Channel) (*Channel, error) {
 	input.Link = strings.TrimSpace(input.Link)
-	if matched := gPwdModLinkRegexp.MatchString(input.Link); !matched {
-		return nil, errors.New("invalid link[" + gPwdModLinkRegexpTpl + "]: " + input.Link)
-	}
+
 	inputPwdBytes, err := pwdGetPwdFromChannel(input)
 	if err != nil {
 		return nil, err
@@ -90,12 +83,12 @@ func (h *PwdHandler) Wrap(input *Channel) (*Channel, error) {
 	}, nil
 }
 
-func (h *PwdHandler) Identify(input *Channel) (bool, error) {
+func (h *PwdHandler) Identify(input *Channel) (bool, string, error) {
 	chnID := IdOf(input.Type, input.Code)
 
 	inputPwdBytes, err := pwdGetPwdFromChannel(input)
 	if err != nil {
-		return false, err
+		return false, IdNil, err
 	}
 
 	idChnM, err := hdb.Get[IdChannelM](zplt.HelixPgDB().PG(),
@@ -103,29 +96,29 @@ func (h *PwdHandler) Identify(input *Channel) (bool, error) {
 		chnID, input.Link)
 	if err != nil {
 		hlog.Err("sattva.channel.PwdHandler.Identify", zap.Error(err))
-		return false, err
+		return false, IdNil, err
 	}
 	if idChnM == nil {
-		return false, errors.New("no such id channel [channel=" + input.Code + ", link=" + input.Link + "]")
+		return false, IdNil, errors.New("no such id channel [channel=" + input.Code + ", link=" + input.Link + "]")
 	}
 	ptrDbParas, err := hjson.FromBytes[dict.Dict](idChnM.Paras)
 	if err != nil {
 		hlog.Err("sattva.channel.PwdHandler.Identity: bytes to paras", zap.Error(err))
-		return false, err
+		return false, IdNil, err
 	}
 	dbParas := *ptrDbParas
 	if len(dbParas) == 0 {
 		hlog.Err("sattva.channel.PwdHandler.Identity: invalid id channel paras", zap.Error(err))
-		return false, errors.New("invalid id channel paras")
+		return false, IdNil, errors.New("invalid id channel paras")
 	}
 	dbPwdEncryptHexStr := dbParas.Get(PwdPasswordKey).String()
 	if len(dbPwdEncryptHexStr) == 0 {
-		return false, errors.New("require valid password in db.channel.paras")
+		return false, "", errors.New("require valid password in db.channel.paras")
 	}
 	dbPwdEncryptBytes, err := hex.DecodeString(dbPwdEncryptHexStr)
 	if err != nil {
 		hlog.Err("sattva.channel.PwdHandler.Identity: hex.DecodeString", zap.Error(err))
-		return false, err
+		return false, IdNil, err
 	}
 	var dbPwdDecryptBytes []byte
 	if h.encryptPwdBytes == nil {
@@ -135,13 +128,13 @@ func (h *PwdHandler) Identify(input *Channel) (bool, error) {
 	}
 	if err != nil {
 		hlog.Err("sattva.channel.PwdHandler.Identity: hvault.Decrypt", zap.Error(err))
-		return false, err
+		return false, IdNil, err
 	}
 
 	if bytes.Equal(dbPwdDecryptBytes, inputPwdBytes) {
-		return true, nil
+		return true, idChnM.ID, nil
 	}
-	return false, nil
+	return false, IdNil, nil
 }
 
 func pwdGetPwdFromChannel(input *Channel) ([]byte, error) {
