@@ -34,7 +34,7 @@ func main() {
 				Code:  bizCode,
 				Link:  fmt.Sprintf("user_%d_%d", i, time.Now().UnixMilli()),
 				Paras: dict.New(make(map[string]interface{})).Set("password", "12345678"),
-			})
+			}, nil)
 			if err != nil {
 				fmt.Println(err)
 				return
@@ -48,13 +48,13 @@ func main() {
 			Code:  bizCode,
 			Link:  fmt.Sprintf("user_example_%d", ms),
 			Paras: dict.New(make(map[string]interface{})).Set("password", "12345678"),
-		})
+		}, nil)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 		fmt.Println("id: ", id)
-		willOK, err := s.Identify(&sattva.Channel{
+		willOK, id, err := s.Identify(&sattva.Channel{
 			Type:  sattva.Password,
 			Code:  bizCode,
 			Link:  fmt.Sprintf("user_example_%d", ms),
@@ -66,7 +66,7 @@ func main() {
 		}
 		fmt.Println("willOK: ", willOK)
 
-		willFail, err := s.Identify(&sattva.Channel{
+		willFail, id, err := s.Identify(&sattva.Channel{
 			Type:  sattva.Password,
 			Code:  bizCode,
 			Link:  fmt.Sprintf("user_example_%d", ms),

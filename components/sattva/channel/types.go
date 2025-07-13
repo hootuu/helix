@@ -34,5 +34,5 @@ type Builder interface {
 
 type Handler interface {
 	Wrap(chn *Channel) (*Channel, error)
-	Identify(chn *Channel) (bool, error)
+	Identify(chn *Channel) (bool, string, error)
 }
