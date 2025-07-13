@@ -14,4 +14,5 @@ type AlterHandler interface {
 	Table() []string
 	Action() []string
 	OnAlter(alter *Alter) error
+	OnDrop(table string) error
 }

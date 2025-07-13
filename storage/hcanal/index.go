@@ -37,7 +37,13 @@ func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 	var curAutoID int64
 	defer hlog.Elapse("canal.idx.sync",
 		hlog.F(zap.String("table", alter.Table), zap.String("action", alter.Action)),
-		hlog.E(err, zap.Int64("lstAutoID", curAutoID)))()
+		func() []zap.Field {
+			arr := []zap.Field{zap.Int64("lstAutoID", curAutoID)}
+			if err != nil {
+				arr = append(arr, zap.Error(err))
+			}
+			return arr
+		})()
 	if len(alter.Entities) == 0 {
 		return nil
 	}
@@ -64,6 +70,22 @@ func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 		curAutoID = entity.AutoID
 	}
 	err = hmeili.AddDocuments(h.meili, h.indexer, docArr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *IndexSyncHandler) OnDrop(table string) (err error) {
+	defer hlog.Elapse("canal.idx.sync.drop",
+		hlog.F(zap.String("table", table)),
+		func() []zap.Field {
+			if err != nil {
+				return []zap.Field{zap.Error(err)}
+			}
+			return nil
+		})()
+	err = hmeili.DropIndex(h.meili, h.indexer)
 	if err != nil {
 		return err
 	}
