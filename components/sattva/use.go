@@ -23,6 +23,9 @@ var gUniIdGenerator hnid.Generator
 func init() {
 	helix.Use(helix.BuildHelix("helix_sattva_uni", func() (context.Context, error) {
 		RegisterBuilder(Password, channel.NewPwdBuilder())
+		RegisterBuilder(Mobile, channel.NewMobileBuilder())
+		RegisterBuilder(DeviceID, channel.NewDeviceBuilder())
+
 		var err error
 		err = zplt.HelixPgDB().PG().AutoMigrate(
 			&ChannelM{},

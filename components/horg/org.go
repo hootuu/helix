@@ -56,7 +56,7 @@ func Create(ctx context.Context, paras CreateParas, call ...func(ctx context.Con
 		return 0, err
 	}
 	orgM := &OrgM{
-		Biz:       paras.Biz.ID(),
+		Biz:       paras.Biz.ToID(),
 		Sovereign: true,
 		ID:        id,
 		Parent:    gOrgIdTree.Root(),
