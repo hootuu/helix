@@ -16,7 +16,7 @@ import (
 
 const gChnCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_.]{0,32}$`
 
-const gModLinkRegexpTpl = `^[a-zA-Z0-9_@.-]{1,32}$`
+const gModLinkRegexpTpl = `^[a-zA-Z0-9_@.-]{1,64}$`
 
 var gModLinkRegexp = regexp.MustCompile(gModLinkRegexpTpl)
 
