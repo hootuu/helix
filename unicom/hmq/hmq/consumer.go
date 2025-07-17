@@ -3,6 +3,8 @@ package hmq
 import (
 	"context"
 	"errors"
+	"github.com/hootuu/hyle/data/idx"
+	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -19,7 +21,7 @@ type Consumer struct {
 	channel     Channel
 	core        ConsumerCore
 	coreCtx     context.Context
-	handlerFunc func(msg *Message) error
+	handlerFunc func(ctx context.Context, msg *Message) error
 	ctx         context.Context
 	ctxStop     context.CancelFunc
 	wg          sync.WaitGroup
@@ -31,7 +33,7 @@ func newConsumer(code string, topic Topic, channel Channel, core ConsumerCore) *
 		topic:       topic,
 		channel:     channel,
 		core:        core,
-		handlerFunc: func(msg *Message) error { return nil },
+		handlerFunc: func(ctx context.Context, msg *Message) error { return nil },
 	}
 }
 
@@ -48,16 +50,29 @@ func (c *Consumer) Channel() Channel {
 }
 
 func (c *Consumer) Handle(msg *Message) error {
-	gMqCLogger.Info(msg.ID, zap.String("code", c.code), zap.String("id", msg.ID),
-		zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)))
-	start := time.Now()
-	defer func() {
-		gMqCLogger.Info(msg.ID, zap.Int64("_elapse", time.Since(start).Milliseconds()))
-	}()
-	return c.handlerFunc(msg)
+	var err error
+	if hlog.IsElapseComponent() {
+		gMqCLogger.Info(msg.ID, zap.String("code", c.code), zap.String("id", msg.ID),
+			zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)))
+		start := time.Now()
+		defer func() {
+			arr := []zap.Field{zap.Int64("_elapse", time.Since(start).Milliseconds())}
+			if err != nil {
+				arr = append(arr, zap.Error(err))
+				return
+			}
+			gMqCLogger.Info(msg.ID, arr...)
+		}()
+	}
+	ctx := context.WithValue(context.Background(), hlog.TraceIdKey, idx.New())
+	err = c.handlerFunc(ctx, msg)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (c *Consumer) WithHandler(handlerFunc func(msg *Message) error) *Consumer {
+func (c *Consumer) WithHandler(handlerFunc func(ctx context.Context, msg *Message) error) *Consumer {
 	c.handlerFunc = handlerFunc
 	return c
 }

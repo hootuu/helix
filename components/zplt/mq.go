@@ -4,6 +4,9 @@ import (
 	"github.com/hootuu/helix/helix"
 	"github.com/hootuu/helix/unicom/hmq/hmq"
 	"github.com/hootuu/helix/unicom/hmq/hnsq"
+	"github.com/hootuu/hyle/hlog"
+	"github.com/hootuu/hyle/hretry"
+	"go.uber.org/zap"
 	"sync"
 )
 
@@ -44,6 +47,19 @@ func HelixMqPublish(topic hmq.Topic, payload hmq.Payload) error {
 		return err
 	}
 	return producer.Publish(topic, payload)
+}
+
+func HelixMqMustPublish(topic hmq.Topic, payload hmq.Payload) {
+	err := hretry.Must(func() error {
+		return HelixMqPublish(topic, payload)
+	})
+	if err != nil {
+		hlog.Fix("MQ Publish Error: ",
+			zap.Error(err),
+			zap.Any("topic", topic),
+			zap.ByteString("payload", payload),
+		)
+	}
 }
 
 func init() {
