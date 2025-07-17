@@ -14,18 +14,20 @@ import (
 )
 
 func Generate(ctx context.Context, biz string, major collar.Collar) (c Code, err error) {
-	defer hlog.Elapse("helix.link.Generate", func() []zap.Field {
-		return nil
-	}, func() []zap.Field {
-		if err != nil {
-			return []zap.Field{
-				zap.String("biz", biz),
-				zap.String("major", major.ToString()),
-				zap.Error(err),
+	if hlog.IsElapsePackage() {
+		defer hlog.Elapse("helix.link.Generate", func() []zap.Field {
+			return nil
+		}, func() []zap.Field {
+			if err != nil {
+				return []zap.Field{
+					zap.String("biz", biz),
+					zap.String("major", major.ToString()),
+					zap.Error(err),
+				}
 			}
-		}
-		return nil
-	})()
+			return nil
+		})()
+	}
 	seed, err := hseq.Next(ctx, collar.Build("helix_link", biz))
 	if err != nil {
 		return "", err
@@ -42,6 +44,18 @@ func Generate(ctx context.Context, biz string, major collar.Collar) (c Code, err
 		return "", nil
 	}
 	return c, nil
+}
+
+func GetOrGenerate(ctx context.Context, biz string, major collar.Collar) (c Code, err error) {
+	tx := zplt.HelixPgCtx(ctx)
+	codM, err := hdb.Get[LinkCodeM](tx, "link = ? AND biz = ?", major.ToID(), biz)
+	if err != nil {
+		return "", err
+	}
+	if codM == nil {
+		return Generate(ctx, biz, major)
+	}
+	return codM.Code, nil
 }
 
 func Validate(biz string, code Code) (bool, error) {

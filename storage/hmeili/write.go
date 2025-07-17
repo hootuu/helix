@@ -113,3 +113,34 @@ func DelDocuments(meili *Meili, indexer Indexer, autoIDs []int64) error {
 	}(task)
 	return nil
 }
+
+func DropIndex(meili *Meili, indexer Indexer) error {
+	var task *meilisearch.TaskInfo = nil
+	hretry.Universal(func() error {
+		theTask, err := meili.Meili().DeleteIndex(indexer.GetName())
+		if err != nil {
+			hlog.Err("hmeili.DropIndex", zap.Error(err))
+			return err
+		}
+		task = theTask
+		return nil
+	})
+	if task == nil {
+		hlog.Err("hmeili.DropIndex[final]: Universal err")
+		gMeiliLogger.Error("drop_err", zap.String("index", indexer.GetName()))
+		return nil
+	}
+	go func(task *meilisearch.TaskInfo) {
+		status, err := meili.Meili().WaitForTask(task.TaskUID, 1000*time.Millisecond)
+		if err != nil || status.Status != meilisearch.TaskStatusSucceeded {
+			gMeiliLogger.Error("drop_err", zap.String("index", indexer.GetName()),
+				zap.Int64("task", task.TaskUID),
+				zap.Error(err),
+				zap.Any("", status),
+			)
+			return
+		}
+		gMeiliLogger.Info("dropped", zap.Int64("task", task.TaskUID))
+	}(task)
+	return nil
+}
