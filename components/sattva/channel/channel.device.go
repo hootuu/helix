@@ -13,7 +13,7 @@ import (
 
 const (
 	DeviceIDKey        = "device_id"
-	gDeviceIDRegexpTpl = `^[A-Za-z0-9]{6,32}$`
+	gDeviceIDRegexpTpl = `^[A-Za-z0-9]{6,64}$`
 )
 
 type DeviceBuilder struct {
