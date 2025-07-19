@@ -41,6 +41,7 @@ func (idx *linkIndexer) Setting(index meilisearch.IndexManager) error {
 		"relation",
 		"counterpart_code",
 		"counterpart_id",
+		"biz",
 	}
 	_, err := index.UpdateFilterableAttributes(&filterableAttributes)
 	if err != nil {
