@@ -38,10 +38,8 @@ func (cache *Cache) GetInt64(key string) (int64, error) {
 
 func CacheGet[T any](cache *Cache, key string) (*T, error) {
 	var obj *T
-	var err error
-	_, _ = cache.Get(key, func(cmd *redis.StringCmd) {
-		var bytes []byte
-		bytes, err = cmd.Bytes()
+	b, err := cache.Get(key, func(cmd *redis.StringCmd) {
+		bytes, err := cmd.Bytes()
 		if err != nil {
 			return
 		}
@@ -50,5 +48,11 @@ func CacheGet[T any](cache *Cache, key string) (*T, error) {
 		}
 		obj, err = hjson.FromBytes[T](bytes)
 	})
+	if err != nil {
+		return nil, err
+	}
+	if !b {
+		return nil, nil
+	}
 	return obj, err
 }

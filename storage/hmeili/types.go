@@ -1,7 +1,10 @@
 package hmeili
 
 import (
+	"github.com/hootuu/hyle/data/hjson"
+	"github.com/hootuu/hyle/hypes/ex"
 	"github.com/meilisearch/meilisearch-go"
+	"time"
 )
 
 type SearchRequest = meilisearch.SearchRequest
@@ -26,6 +29,7 @@ func NewMapDocument(id any, autoID int64, timestamp int64) MapDocument {
 	doc["id"] = id
 	doc["auto_id"] = autoID
 	doc["timestamp"] = timestamp
+	doc["_sync_"] = time.Now().UnixMilli()
 	return doc
 }
 
@@ -55,7 +59,26 @@ func (d MapDocument) GetTimestamp() int64 {
 	return 0
 }
 
+func (d MapDocument) MixEx(ctrl ex.Ctrl, tag ex.Tag, meta ex.Meta) {
+	if len(ctrl) > 0 {
+		d["ctrl"] = ctrl
+	}
+	if tag != nil {
+		d["tag"] = hjson.MustToBytes(tag)
+	}
+	if meta != nil {
+		d["meta"] = hjson.MustToBytes(meta)
+	}
+}
+
 func (d MapDocument) Mix(prefix string, data map[string]interface{}) {
+	if len(data) == 0 {
+		return
+	}
+	d[prefix] = data
+}
+
+func (d MapDocument) TopMix(prefix string, data map[string]interface{}) {
 	if len(data) == 0 {
 		return
 	}
