@@ -1,6 +1,8 @@
 package hdb
 
 import (
+	"github.com/hootuu/hyle/data/hjson"
+	"github.com/hootuu/hyle/hypes/ex"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
@@ -29,4 +31,15 @@ type Template struct {
 	Ctrl      []byte         `gorm:"column:ctrl;size:128;"`
 	Tag       datatypes.JSON `gorm:"column:tag;type:jsonb;"`
 	Meta      datatypes.JSON `gorm:"column:meta;type:jsonb;"`
+}
+
+func TemplateFromEx(exM *ex.Ex) Template {
+	if exM == nil {
+		return Template{}
+	}
+	return Template{
+		Ctrl: exM.Ctrl,
+		Tag:  hjson.MustToBytes(exM.Tag),
+		Meta: hjson.MustToBytes(exM.Meta),
+	}
 }
