@@ -2,8 +2,6 @@ package hrds
 
 import (
 	"fmt"
-	"github.com/hootuu/hyle/hlog"
-	"go.uber.org/zap"
 	"time"
 )
 
@@ -26,10 +24,11 @@ func Fast[T any](
 		if m == nil {
 			return nil, nil
 		}
-		err = cache.Set(uniKey, m, duration)
-		if err != nil {
-			hlog.Fix("hrds.Fast.cache.Set failed", zap.Error(err))
-		}
+		// TODO add
+		//err = cache.Set(uniKey, m, duration)
+		//if err != nil {
+		//	hlog.Fix("hrds.Fast.cache.Set failed", zap.Error(err))
+		//}
 		return m, nil
 	}
 	return m, nil
