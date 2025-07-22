@@ -22,7 +22,7 @@ func (cache *Cache) Get(key string, parse func(cmd *redis.StringCmd)) (bool, err
 func (cache *Cache) GetString(key string) (string, error) {
 	str := ""
 	_, _ = cache.Get(key, func(cmd *redis.StringCmd) {
-		str = cmd.String()
+		str = cmd.Val()
 	})
 	return str, nil
 }
