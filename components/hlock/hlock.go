@@ -26,9 +26,44 @@ func (l *Locker) Lock(
 ) (bool, error) {
 	rds := l.cache.Redis()
 
+	lockKey := fmt.Sprintf("hlock:lock:%s", key)
+
+	token := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000))
+
+	locked, err := rds.SetNX(ctx, lockKey, token, ttl).Result()
+	if err != nil {
+		hlog.Err("hlock.Lock: Set Lock Token", zap.String("key", key), zap.Error(err))
+		return false, err
+	}
+
+	if !locked {
+		hlog.Info("hlock.Lock: !locked", zap.String("key", key))
+		return false, nil
+	}
+
+	defer func() {
+		l.release(ctx, lockKey, token)
+	}()
+
+	err = call()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (l *Locker) OnceLock(
+	ctx context.Context,
+	key string,
+	call func() error,
+	ttl time.Duration,
+) (bool, error) {
+	rds := l.cache.Redis()
+
 	taskStatusKey := fmt.Sprintf("hlock:status:%s", key)
 
-	if isDone, _ := rds.Get(ctx, key).Result(); isDone == "1" {
+	if isDone, _ := rds.Get(ctx, taskStatusKey).Result(); isDone == "1" {
 		return true, nil
 	}
 
@@ -44,7 +79,7 @@ func (l *Locker) Lock(
 
 	if !locked {
 		hlog.Info("hlock.Lock: !locked", zap.String("key", key))
-		return true, nil
+		return false, nil
 	}
 
 	defer func() {
