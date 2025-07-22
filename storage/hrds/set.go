@@ -2,7 +2,9 @@ package hrds
 
 import (
 	"context"
+	"errors"
 	"github.com/avast/retry-go"
+	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/spf13/cast"
@@ -11,8 +13,15 @@ import (
 )
 
 func (cache *Cache) Set(key string, val interface{}, expiration time.Duration) error {
+	if val == nil {
+		return errors.New("val is nil")
+	}
+	payload := hjson.MustToBytes(val)
+	if payload == nil {
+		return errors.New("payload is nil")
+	}
 	err := retry.Do(func() error {
-		cmd := cache.Redis().Set(context.Background(), key, val, expiration)
+		cmd := cache.Redis().Set(context.Background(), key, payload, expiration)
 		if err := cmd.Err(); err != nil {
 			return err
 		}
