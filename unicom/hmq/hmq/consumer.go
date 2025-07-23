@@ -51,14 +51,15 @@ func (c *Consumer) Channel() Channel {
 
 func (c *Consumer) Handle(msg *Message) error {
 	var err error
-	if hlog.IsElapseComponent() {
+	if hlog.IsElapseDetail() {
 		gMqCLogger.Info(msg.ID, zap.String("code", c.code), zap.String("id", msg.ID),
 			zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)))
 		start := time.Now()
 		defer func() {
 			arr := []zap.Field{zap.Int64("_elapse", time.Since(start).Milliseconds())}
 			if err != nil {
-				arr = append(arr, zap.Error(err))
+				arr = append(arr, zap.Error(err), zap.String("payload", string(msg.Payload)))
+				gMqCLogger.Error(msg.ID, arr...)
 				return
 			}
 			gMqCLogger.Info(msg.ID, arr...)
@@ -67,6 +68,14 @@ func (c *Consumer) Handle(msg *Message) error {
 	ctx := context.WithValue(context.Background(), hlog.TraceIdKey, idx.New())
 	err = c.handlerFunc(ctx, msg)
 	if err != nil {
+		hlog.Err("hmq.consumer.Handle",
+			hlog.TraceInfo(ctx),
+			zap.String("code", c.code),
+			zap.String("id", msg.ID),
+			zap.String("topic", string(c.topic)),
+			zap.String("channel", string(c.channel)),
+			zap.String("payload", string(msg.Payload)),
+			zap.Error(err))
 		return err
 	}
 	return nil

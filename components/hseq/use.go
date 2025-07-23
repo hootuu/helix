@@ -58,6 +58,30 @@ func Next(ctx context.Context, biz collar.Collar) (ID, error) {
 	return nxtID, nil
 }
 
+func Current(ctx context.Context, biz collar.Collar, call func(current ID)) error {
+	bizID := biz.ToSafeID()
+	tx := zplt.HelixPgCtx(ctx)
+	bLockDo, err := gLocker.Lock(ctx, "hseq:"+bizID, func() error {
+		seqM, err := hdb.Get[SeqM](tx, "biz = ?", bizID)
+		if err != nil {
+			return err
+		}
+		if seqM == nil {
+			call(0)
+		} else {
+			call(seqM.Seq)
+		}
+		return nil
+	}, 200*time.Millisecond)
+	if err != nil {
+		return err
+	}
+	if !bLockDo {
+		return errors.New("biz " + bizID + ": lock failed")
+	}
+	return nil
+}
+
 func init() {
 	helix.Use(helix.BuildHelix("helix_seq", func() (context.Context, error) {
 		err := zplt.HelixPgDB().PG().AutoMigrate(

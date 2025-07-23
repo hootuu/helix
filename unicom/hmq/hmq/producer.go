@@ -2,6 +2,7 @@ package hmq
 
 import (
 	"errors"
+	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +23,12 @@ func newProducer(core ProducerCore) *Producer {
 }
 
 func (p *Producer) Publish(topic Topic, payload Payload) error {
-	gMqPLogger.Info("publish", zap.String("topic", string(topic)))
+	if hlog.IsElapseDetail() {
+		gMqPLogger.Info("publish",
+			zap.String("topic", string(topic)),
+			zap.String("payload", string(payload)),
+		)
+	}
 	if p.core == nil {
 		return errors.New("must set producer core")
 	}

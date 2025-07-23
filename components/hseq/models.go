@@ -2,12 +2,11 @@ package hseq
 
 import (
 	"github.com/hootuu/helix/storage/hdb"
-	"github.com/hootuu/hyle/hypes/collar"
 )
 
 type SeqM struct {
 	hdb.Basic
-	Biz     collar.ID   `gorm:"column:biz;primaryKey;"`
+	Biz     string      `gorm:"column:biz;primaryKey;size:128;"`
 	Seq     int64       `gorm:"column:seq;"`
 	Version hdb.Version `gorm:"column:version;"`
 }
