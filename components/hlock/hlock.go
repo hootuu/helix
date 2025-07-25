@@ -3,6 +3,7 @@ package hlock
 import (
 	"context"
 	"fmt"
+	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/storage/hrds"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
@@ -16,6 +17,10 @@ type Locker struct {
 
 func NewLocker(cache *hrds.Cache) *Locker {
 	return &Locker{cache: cache}
+}
+
+func Light() *Locker {
+	return NewLocker(zplt.HelixRdsCache())
 }
 
 func (l *Locker) Lock(
