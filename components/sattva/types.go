@@ -1,8 +1,15 @@
 package sattva
 
-import "github.com/hootuu/helix/components/sattva/channel"
+import (
+	"github.com/hootuu/helix/components/sattva/channel"
+	"github.com/hootuu/hyle/hypes/collar"
+)
 
 type Identification = string
+
+func BuildCollar(id Identification) collar.Collar {
+	return collar.Build("SATTVA", id)
+}
 
 const IdNil = ""
 
