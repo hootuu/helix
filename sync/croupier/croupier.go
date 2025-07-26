@@ -180,8 +180,8 @@ func (c *Croupier) doAllowInLock(call func() error) (bool, error) {
 }
 
 func (c *Croupier) getInitLockKey() string {
-	return fmt.Sprintf("helix_croupier_init:%s", c.id)
+	return fmt.Sprintf("helix_croupier:init:%s", c.id)
 }
 func (c *Croupier) getEachLockKey() string {
-	return fmt.Sprintf("helix_croupier_each:%s", c.id)
+	return fmt.Sprintf("helix_croupier:each:%s", c.id)
 }
