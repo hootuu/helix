@@ -1,6 +1,7 @@
 package hrds
 
 import (
+	"context"
 	"fmt"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
@@ -33,4 +34,9 @@ func Fast[T any](
 		return m, nil
 	}
 	return m, nil
+}
+
+func FastReset(cache *Cache, code string, key string) error {
+	uniKey := fmt.Sprintf("%s:%s", code, key)
+	return cache.Redis().Del(context.Background(), uniKey).Err()
 }
