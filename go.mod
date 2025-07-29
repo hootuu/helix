@@ -8,6 +8,7 @@ require (
 	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-mysql-org/go-mysql v1.12.0
+	github.com/hibiken/asynq v0.25.1
 	github.com/hootuu/hyle v1.0.0
 	github.com/meilisearch/meilisearch-go v0.32.0
 	github.com/mr-tron/base58 v1.2.0
@@ -82,6 +83,7 @@ require (
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/time v0.8.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect

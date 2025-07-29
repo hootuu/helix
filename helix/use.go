@@ -11,3 +11,7 @@ func Startup() {
 func AfterStartup(call func()) {
 	gHelixStartupSuccessOn.Add(call)
 }
+
+func Ready(call func()) {
+	gHelixStartupSuccessOn.Add(call)
+}

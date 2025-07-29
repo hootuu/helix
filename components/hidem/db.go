@@ -2,7 +2,6 @@ package hidem
 
 import (
 	"fmt"
-	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hync"
@@ -16,6 +15,7 @@ type dbFactory struct {
 	cleanInterval time.Duration
 	syncLine      hync.Line
 	lstCleanTime  time.Time
+	db            *hdb.Database
 }
 
 func (f *dbFactory) Check(idemCode string) (bool, error) {
@@ -31,29 +31,41 @@ func (f *dbFactory) Check(idemCode string) (bool, error) {
 	idemM := &IdemM{
 		IdemCode: idemCode,
 	}
-	exist, err := hdb.Exist[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), "idem_code = ?", idemM.IdemCode)
+	exist, err := hdb.Exist[IdemM](f.db.DB().Table(f.tableName()), "idem_code = ?", idemM.IdemCode)
 	if err != nil {
 		return false, err
 	}
 	if exist {
 		return false, nil
 	}
-	err = hdb.Create[IdemM](zplt.HelixPgDB().PG().Table(f.tableName()), idemM)
+	err = hdb.Create[IdemM](f.db.DB().Table(f.tableName()), idemM)
 	if err != nil {
 		return false, err
 	}
 	return true, nil
 }
 
-func newDbFactory(code string, expiration time.Duration, cleanInterval time.Duration) (*dbFactory, error) {
+func (f *dbFactory) MustCheck(idemCode string) error {
+	ok, err := f.Check(idemCode)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("idem error: %s", idemCode)
+	}
+	return nil
+}
+
+func newDbFactory(db *hdb.Database, code string, expiration time.Duration, cleanInterval time.Duration) (*dbFactory, error) {
 	f := &dbFactory{
 		code:          code,
 		expiration:    expiration,
 		cleanInterval: cleanInterval,
+		db:            db,
 	}
-	err := zplt.HelixPgDB().PG().Table(f.tableName()).AutoMigrate(&IdemM{})
+	err := f.db.DB().Table(f.tableName()).AutoMigrate(&IdemM{})
 	if err != nil {
-		hlog.Err("hidem.pg.newDbFactory", zap.Error(err))
+		hlog.Err("hidem.db.newDbFactory", zap.Error(err))
 		return nil, err
 	}
 	return f, nil
@@ -85,7 +97,7 @@ func (f *dbFactory) clean() {
 			}
 		})()
 
-		tx := zplt.HelixPgDB().PG().Unscoped().
+		tx := f.db.DB().Unscoped().
 			Table(f.tableName()).
 			Where("created_at < ?", threshold).
 			Delete(&IdemM{})

@@ -2,6 +2,8 @@ package hidem
 
 import (
 	"errors"
+	"github.com/hootuu/helix/storage/hdb"
+	"github.com/hootuu/helix/storage/hrds"
 	"regexp"
 	"sync"
 	"time"
@@ -13,12 +15,13 @@ const (
 
 type Factory interface {
 	Check(idemCode string) (bool, error)
+	MustCheck(idemCode string) error
 }
 
 var gFactoryMap = make(map[string]Factory)
 var gFactoryMapMu sync.Mutex
 
-func NewDbFactory(code string, expiration time.Duration, cleanInterval time.Duration) (Factory, error) {
+func NewDbFactory(db *hdb.Database, code string, expiration time.Duration, cleanInterval time.Duration) (Factory, error) {
 	if err := CheckFactoryCode(code); err != nil {
 		return nil, err
 	}
@@ -27,7 +30,7 @@ func NewDbFactory(code string, expiration time.Duration, cleanInterval time.Dura
 	if _, ok := gFactoryMap[code]; ok {
 		return nil, errors.New("repeated idempotent factory: " + code)
 	}
-	f, err := newDbFactory(code, expiration, cleanInterval)
+	f, err := newDbFactory(db, code, expiration, cleanInterval)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func NewDbFactory(code string, expiration time.Duration, cleanInterval time.Dura
 	return f, nil
 }
 
-func NewCacheFactory(code string, expiration time.Duration) (Factory, error) {
+func NewCacheFactory(cache *hrds.Cache, code string, expiration time.Duration) (Factory, error) {
 	if err := CheckFactoryCode(code); err != nil {
 		return nil, err
 	}
@@ -44,7 +47,7 @@ func NewCacheFactory(code string, expiration time.Duration) (Factory, error) {
 	if _, ok := gFactoryMap[code]; ok {
 		return nil, errors.New("repeated idempotent factory: " + code)
 	}
-	f, err := newCacheFactory(code, expiration)
+	f, err := newCacheFactory(cache, code, expiration)
 	if err != nil {
 		return nil, err
 	}

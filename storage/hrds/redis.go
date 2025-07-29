@@ -68,13 +68,13 @@ func (cache *Cache) startup() (context.Context, error) {
 		MaxRetries:                 hcfg.GetInt("redis."+cache.code+".max.retries", 0),
 		MinRetryBackoff:            hcfg.GetDuration("redis."+cache.code+".min.retry.backoff", 0),
 		MaxRetryBackoff:            hcfg.GetDuration("redis."+cache.code+".max.retry.backoff", 0),
-		DialTimeout:                hcfg.GetDuration("redis."+cache.code+".dial.timeout", 0),
-		ReadTimeout:                hcfg.GetDuration("redis."+cache.code+".read.timeout", 0),
-		WriteTimeout:               hcfg.GetDuration("redis."+cache.code+".write.timeout", 0),
+		DialTimeout:                hcfg.GetDuration("redis."+cache.code+".dial.timeout", 2*time.Second),
+		ReadTimeout:                hcfg.GetDuration("redis."+cache.code+".read.timeout", 300*time.Millisecond),
+		WriteTimeout:               hcfg.GetDuration("redis."+cache.code+".write.timeout", 1*time.Second),
 		ContextTimeoutEnabled:      hcfg.GetBool("redis."+cache.code+".context.timeout.enabled", false),
 		PoolFIFO:                   hcfg.GetBool("redis."+cache.code+".pool.fifo", false),
-		PoolSize:                   hcfg.GetInt("redis."+cache.code+".pool.size", 0),
-		PoolTimeout:                hcfg.GetDuration("redis."+cache.code+".pool.timeout", 0),
+		PoolSize:                   hcfg.GetInt("redis."+cache.code+".pool.size", 50),
+		PoolTimeout:                hcfg.GetDuration("redis."+cache.code+".pool.timeout", 2*time.Second),
 		MinIdleConns:               hcfg.GetInt("redis."+cache.code+".min.idle.conns", 0),
 		MaxIdleConns:               hcfg.GetInt("redis."+cache.code+".max.idle.conns", 0),
 		MaxActiveConns:             hcfg.GetInt("redis."+cache.code+".max.active.conns", 0),
@@ -91,9 +91,12 @@ func (cache *Cache) startup() (context.Context, error) {
 }
 
 func (cache *Cache) shutdown(_ context.Context) {
-	if cache.client != nil {
-		_ = cache.client.Close()
-	}
+	go func() {
+		time.Sleep(10 * time.Second)
+		if cache.client != nil {
+			_ = cache.client.Close()
+		}
+	}()
 }
 
 var gRedisMap = make(map[string]*Cache)

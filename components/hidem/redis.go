@@ -3,7 +3,7 @@ package hidem
 import (
 	"context"
 	"fmt"
-	"github.com/hootuu/helix/components/zplt"
+	"github.com/hootuu/helix/storage/hrds"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"time"
@@ -12,6 +12,7 @@ import (
 type cacheFactory struct {
 	code       string
 	expiration time.Duration
+	cache      *hrds.Cache
 }
 
 func (f *cacheFactory) cacheKey(idemCode string) string {
@@ -22,7 +23,7 @@ func (f *cacheFactory) Check(idemCode string) (bool, error) {
 	if err := CheckIdemCode(idemCode); err != nil {
 		return false, err
 	}
-	ok, err := zplt.HelixRdsCache().Redis().SetNX(
+	ok, err := f.cache.Redis().SetNX(
 		context.Background(),
 		idemCode,
 		true,
@@ -35,10 +36,22 @@ func (f *cacheFactory) Check(idemCode string) (bool, error) {
 	return ok, nil
 }
 
-func newCacheFactory(code string, expiration time.Duration) (*cacheFactory, error) {
+func (f *cacheFactory) MustCheck(idemCode string) error {
+	ok, err := f.Check(idemCode)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("idem error: %s", idemCode)
+	}
+	return nil
+}
+
+func newCacheFactory(cache *hrds.Cache, code string, expiration time.Duration) (*cacheFactory, error) {
 	f := &cacheFactory{
 		code:       code,
 		expiration: expiration,
+		cache:      cache,
 	}
 	return f, nil
 }
