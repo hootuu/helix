@@ -3,7 +3,6 @@ package helix
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hsys"
@@ -37,6 +36,8 @@ func BuildHelix(
 	}
 }
 
+var gLogger = hlog.GetLogger("helix")
+
 const gCodeRegexpTpl = `^[A-Za-z][A-Za-z0-9_]{0,32}$`
 
 var gCodeRegexp = regexp.MustCompile(gCodeRegexpTpl)
@@ -67,15 +68,16 @@ func doRegister(helix Helix) {
 	gHelixMu.Lock()
 	defer gHelixMu.Unlock()
 	if bExist := exist(helix.code); bExist {
-		hlog.Err("helix.doRegister: code repetition", zap.String("code", helix.code))
+		gLogger.Error("Helix already registered, will exit", zap.String("code", helix.code))
 		hsys.Exit(errors.New("helix code repetition: " + helix.code))
 	}
 	gHelixArr = append(gHelixArr, helix)
 	if gHelixBeenStartup {
+		gLogger.Info("helix:["+helix.code+"] starting...", zap.String("code", helix.code))
 		hsys.Warn("# Runtime startup the helix: [", helix.code, "] ...... #")
 		ctx, err := helix.startup()
 		if err != nil {
-			hlog.Err("runtime start helix failed", zap.String("code", helix.code), zap.Error(err))
+			gLogger.Error("runtime start helix failed, will exit", zap.String("code", helix.code), zap.Error(err))
 			hsys.Error("# Runtime Start helix exception: [", helix.code, "] #")
 			hsys.Exit(err)
 			return
@@ -87,21 +89,25 @@ func doRegister(helix Helix) {
 
 		hcfg.Dump(func(key string, val any) {
 			if strings.Index(key, helix.code) > -1 {
+				gLogger.Info("helix:["+helix.code+"] cfg", zap.String("key", key), zap.Any("val", val))
 				hsys.Info(" ** [", key, "] ==> ", val)
 			}
 		})
+		gLogger.Info("helix:["+helix.code+"] cfg", zap.String("code", helix.code))
 		hsys.Success("# Runtime startup the helix [", helix.code, "] [OK] #")
 	}
 }
 
 func doStartup() {
+	gLogger.Info("startup all registered helix ......")
 	hsys.Warn("# Startup all registered helix ...... #")
 	gHelixBeenStartup = true
 	for _, helix := range gHelixArr {
+		gLogger.Info("helix:["+helix.code+"] starting...", zap.String("code", helix.code))
 		hsys.Warn("  ## Startup the helix: [", helix.code, "] ...... #")
 		ctx, err := helix.startup()
 		if err != nil {
-			hlog.Err("start helix failed", zap.String("code", helix.code), zap.Error(err))
+			gLogger.Error("runtime start helix failed", zap.String("code", helix.code), zap.Error(err))
 			hsys.Error("  ** Start helix exception: [", helix.code, "] #")
 			return
 		}
@@ -109,19 +115,25 @@ func doStartup() {
 		if helix.ctx == nil {
 			helix.ctx = context.Background()
 		}
+		gLogger.Info("helix:["+helix.code+"] start OK", zap.String("code", helix.code))
 		hsys.Success("  ** Startup the helix [", helix.code, "] [OK] #")
 	}
+	gLogger.Info("startup all registered helix OK")
 	hsys.Success("# Startup all registered helix [OK] #")
 
+	gLogger.Info("# Display all init used configure items ...... #")
 	hsys.Warn("# Display all init used configure items ...... #")
 	hcfg.Dump(func(key string, val any) {
 		if strings.Index(strings.ToLower(key), "password") > -1 ||
 			strings.Index(strings.ToLower(key), "pwd") > -1 {
+			gLogger.Info("  ## [" + key + "] ==>> **********")
 			hsys.Info("  ## [", key, "] ==>> ", "**********")
 		} else {
+			gLogger.Info("  ## ["+key+"] ==>> ", zap.String("key", key), zap.Any("val", val))
 			hsys.Info("  ## [", key, "] ==>> ", val)
 		}
 	})
+	gLogger.Info("# Display all init used configure items [OK] #")
 	hsys.Success("# Display all init used configure items [OK] #")
 
 	gHelixStartupSuccessOn.On()
@@ -130,8 +142,8 @@ func doStartup() {
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 
-	fmt.Println()
-	hsys.Warn("# Shutdown the system ...... #")
+	gLogger.Info("# Shutdown the system ...... #")
+	hsys.Warn("\n\n# Shutdown the system ...... #")
 
 	var cancelFuncArr []context.CancelFunc
 	defer func() {
@@ -148,9 +160,12 @@ func doStartup() {
 		}
 		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		cancelFuncArr = append(cancelFuncArr, cancel)
+		gLogger.Info("## Shutdown helix: [" + helix.code + "] ......")
 		hsys.Info("  ## Shutdown helix: [", helix.code, "] ......")
 		helix.shutdown(ctx)
+		gLogger.Info("## Shutdown helix " + helix.code + " [OK]")
 		hsys.Success("  ## Shutdown helix ", helix.code, " [OK]")
 	}
+	gLogger.Info("#  Shutting down the system [OK] [OK]")
 	hsys.Success("# Shutting down the system [OK] #")
 }
