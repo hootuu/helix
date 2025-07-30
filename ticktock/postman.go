@@ -10,6 +10,7 @@ import (
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
+	"time"
 )
 
 type Postman struct {
@@ -92,22 +93,31 @@ func (p *Postman) Send(ctx context.Context, job JobDefinable) (err error) {
 			ID:        periodicJob.JobTplID + fmt.Sprintf("_%d", periodicJob.Sequence),
 			Payload:   hjson.MustToBytes(periodicPayload),
 			UniqueTTL: periodicJob.TplUniqueTTL,
-			RunAt:     nextTime,
+			RunAt:     nextTime.Add(-10 * time.Second),
 		}
 		_, err = p.doSend(ctx, nxtPeriodJob)
 		if err != nil {
 			return err
 		}
-		itemDoJob := &RunAtJob{
-			Type:      periodicJob.GetType(),
-			ID:        periodicJob.BuildID(),
-			Payload:   periodicJob.GetPayload(),
-			UniqueTTL: periodicJob.UniqueTTL,
-			RunAt:     nextTime,
-		}
-		postID, err = p.doSend(ctx, itemDoJob)
-		if err != nil {
-			return err
+		if job.GetType() == MqTaskType {
+			LocalSchedule(nextTime, func() {
+				_ = onMqJobHandlerFunc(ctx, &Job{
+					Type:    MqTaskType,
+					Payload: job.GetPayload(),
+				})
+			})
+		} else {
+			itemDoJob := &RunAtJob{
+				Type:      periodicJob.GetType(),
+				ID:        periodicJob.BuildID(),
+				Payload:   periodicJob.GetPayload(),
+				UniqueTTL: periodicJob.UniqueTTL,
+				RunAt:     nextTime,
+			}
+			postID, err = p.doSend(ctx, itemDoJob)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	}

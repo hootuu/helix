@@ -64,8 +64,10 @@ func main() {
 		}
 
 		go func() {
-			for i := 0; i < 0; i++ {
+			for i := 0; i < 1; i++ {
 				du := time.Duration(i+1) * 1 * time.Second
+				nxtTime, _ := ticktock.Expression("* * * * *").Next(time.Now())
+				fmt.Println("nxtTimenxtTimenxtTime", nxtTime)
 				willRun := time.Now().Add(du)
 				willRunTimeStr := willRun.Format("2006-01-02 15:04:05")
 				err := postman.Send(context.Background(), &ticktock.PeriodicJob{
@@ -76,7 +78,7 @@ func main() {
 					TplUniqueTTL: 0,
 					Sequence:     0,
 					Expression:   "* * * * *",
-					Current:      time.Now(),
+					Current:      nxtTime,
 				})
 				if err != nil {
 					panic(err)

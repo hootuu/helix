@@ -55,6 +55,7 @@ func (j *DelayJob) ToAsynqTask() *asynq.Task {
 	opt := []asynq.Option{
 		asynq.TaskID(j.ID),
 		asynq.ProcessIn(j.Delay),
+		asynq.Queue(qCritical),
 	}
 	if j.UniqueTTL > 0 {
 		opt = append(opt, asynq.Unique(j.UniqueTTL))

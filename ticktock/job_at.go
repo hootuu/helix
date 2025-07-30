@@ -52,6 +52,7 @@ func (j *RunAtJob) ToAsynqTask() *asynq.Task {
 	opt := []asynq.Option{
 		asynq.TaskID(j.ID),
 		asynq.ProcessAt(j.RunAt),
+		asynq.Queue(qCritical),
 	}
 	if j.UniqueTTL > 0 {
 		opt = append(opt, asynq.Unique(j.UniqueTTL))

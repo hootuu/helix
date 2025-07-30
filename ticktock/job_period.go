@@ -121,6 +121,7 @@ func (j *PeriodicJob) ToAsynqTask() *asynq.Task {
 	opt := []asynq.Option{
 		asynq.TaskID(j.GetID()),
 		asynq.ProcessAt(nxtTime),
+		asynq.Queue(qCritical),
 	}
 	if j.UniqueTTL > 0 {
 		opt = append(opt, asynq.Unique(j.UniqueTTL))
@@ -142,9 +143,6 @@ func (j *PeriodicJob) BuildPayload() *PeriodicJobPayload {
 			zap.Error(err))
 		nxtTime = time.Now()
 	}
-	//nxtTime, _ = j.Expression.Next(nxtTime)
-	fmt.Println("j.Current:", j.Current.Format(time.RFC3339))
-	fmt.Println("j.NxtTime:", nxtTime.Format(time.RFC3339))
 	return &PeriodicJobPayload{
 		Type:         j.Type,
 		Payload:      j.Payload,

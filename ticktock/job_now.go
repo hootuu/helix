@@ -48,7 +48,10 @@ func (j *NowJob) IsPeriodic() bool {
 }
 
 func (j *NowJob) ToAsynqTask() *asynq.Task {
-	opt := []asynq.Option{asynq.TaskID(j.ID)}
+	opt := []asynq.Option{
+		asynq.TaskID(j.ID),
+		asynq.Queue(qCritical),
+	}
 	if j.UniqueTTL > 0 {
 		opt = append(opt, asynq.Unique(j.UniqueTTL))
 	}

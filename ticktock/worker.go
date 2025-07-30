@@ -82,6 +82,7 @@ func NewWorker(code string, cache *hrds.Cache) *Worker {
 	w.localPostman = NewPostman(w.code+"_cli", cache)
 
 	w.RegisterJobHandlerFunc(periodicTaskType, w.onPeriodicJobHandlerFunc)
+	w.RegisterJobHandlerFunc(MqTaskType, onMqJobHandlerFunc)
 
 	helix.Use(w.Helix())
 
@@ -127,14 +128,40 @@ func (w *Worker) onPeriodicJobHandlerFunc(ctx context.Context, job *Job) (err er
 	}
 	periodicJobPayload := hjson.MustFromBytes[PeriodicJobPayload](job.Payload)
 	if periodicJobPayload == nil {
-		hlog.Fix("ticktock: the PeriodicJobPayload should not be nil")
+		hlog.TraceFix("ticktock: the PeriodicJobPayload should not be nil",
+			ctx, fmt.Errorf("ticktock: the PeriodicJobPayload should not be nil"))
 		return nil
 	}
-	fmt.Println(">>>[IN]", "[", time.Now().Format("2006-01-02 15:04:05"), "]", job.Type, periodicJobPayload.Sequence)
-	nxtJob := PeriodicJobFromPayload(periodicJobPayload)
-	err = w.localPostman.Send(ctx, nxtJob)
-	if err != nil {
-		return err
+	fmt.Println(">>>[IN]", "[",
+		time.Now().Format("2006-01-02 15:04:05"), "]",
+		job.Type,
+		periodicJobPayload.Sequence,
+		periodicJobPayload.Type,
+		periodicJobPayload.JobTplID,
+	)
+	if job.Type == MqTaskType {
+		nxtTime, err := periodicJobPayload.Expression.Next(periodicJobPayload.Current)
+		if err != nil {
+			hlog.TraceFix("ticktock.onPeriodicJobHandlerFunc", ctx, err)
+			return nil
+		}
+		mqPayload := hjson.MustFromBytes[MqJobPayload](periodicJobPayload.Payload)
+		if mqPayload == nil {
+			hlog.TraceFix("ticktock.onPeriodicJobHandlerFunc", ctx, fmt.Errorf("mqPayload is nil"))
+			return nil
+		}
+		LocalSchedule(nxtTime, func() {
+			_ = onMqJobHandlerFunc(ctx, &Job{
+				Type:    MqTaskType,
+				Payload: periodicJobPayload.Payload,
+			})
+		})
+	} else {
+		nxtJob := PeriodicJobFromPayload(periodicJobPayload)
+		err = w.localPostman.Send(ctx, nxtJob)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
