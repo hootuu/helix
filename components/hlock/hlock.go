@@ -31,7 +31,7 @@ func (l *Locker) Lock(
 ) (bool, error) {
 	rds := l.cache.Redis()
 
-	lockKey := fmt.Sprintf("hlock:lock:%s", key)
+	lockKey := fmt.Sprintf("HLOCK:LOCK:%s", key)
 
 	token := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000))
 
@@ -66,13 +66,13 @@ func (l *Locker) OnceLock(
 ) (bool, error) {
 	rds := l.cache.Redis()
 
-	taskStatusKey := fmt.Sprintf("hlock:status:%s", key)
+	taskStatusKey := fmt.Sprintf("HLOCK:ONCE:STATUS:%s", key)
 
 	if isDone, _ := rds.Get(ctx, taskStatusKey).Result(); isDone == "1" {
 		return true, nil
 	}
 
-	lockKey := fmt.Sprintf("hlock:lock:%s", key)
+	lockKey := fmt.Sprintf("HLOCK:ONCE:LOCK:%s", key)
 
 	token := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000))
 
