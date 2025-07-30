@@ -46,6 +46,10 @@ func (l *Locker) Lock(
 		return false, nil
 	}
 
+	defer func() {
+		l.release(ctx, lockKey, token)
+	}()
+
 	err = call()
 	if err != nil {
 		return false, err
@@ -82,6 +86,10 @@ func (l *Locker) OnceLock(
 		hlog.Info("hlock.Lock: !locked", zap.String("key", key))
 		return false, nil
 	}
+
+	defer func() {
+		l.release(ctx, lockKey, token)
+	}()
 
 	if isDone, _ := rds.Get(ctx, key).Result(); isDone == "1" {
 		return true, nil
