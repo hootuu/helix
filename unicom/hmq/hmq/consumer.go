@@ -3,7 +3,6 @@ package hmq
 import (
 	"context"
 	"errors"
-	"github.com/hootuu/hyle/data/idx"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"sync"
@@ -51,12 +50,20 @@ func (c *Consumer) Channel() Channel {
 
 func (c *Consumer) Handle(msg *Message) error {
 	var err error
+	ctx := context.WithValue(context.Background(), hlog.TraceIdKey, msg.ID)
 	if hlog.IsElapseDetail() {
-		gMqCLogger.Info(msg.ID, zap.String("code", c.code), zap.String("id", msg.ID),
-			zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)))
+		gMqCLogger.Info(msg.ID, zap.String("code", c.code),
+			hlog.TraceInfo(ctx),
+			zap.String("id", msg.ID),
+			zap.String("topic", string(c.topic)),
+			zap.String("channel", string(c.channel)),
+			zap.String("payload", string(msg.Payload)))
 		start := time.Now()
 		defer func() {
-			arr := []zap.Field{zap.Int64("_elapse", time.Since(start).Milliseconds())}
+			arr := []zap.Field{
+				zap.Int64("_elapse", time.Since(start).Milliseconds()),
+				hlog.TraceInfo(ctx),
+			}
 			if err != nil {
 				arr = append(arr, zap.Error(err), zap.String("payload", string(msg.Payload)))
 				gMqCLogger.Error(msg.ID, arr...)
@@ -65,7 +72,6 @@ func (c *Consumer) Handle(msg *Message) error {
 			gMqCLogger.Info(msg.ID, arr...)
 		}()
 	}
-	ctx := context.WithValue(context.Background(), hlog.TraceIdKey, idx.New())
 	err = c.handlerFunc(ctx, msg)
 	if err != nil {
 		hlog.Err("hmq.consumer.Handle",
