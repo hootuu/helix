@@ -73,7 +73,7 @@ func CheckFactoryCode(code string) error {
 	return nil
 }
 
-const gIdemCodeRegexpTpl = `^[A-Za-z0-9_.-]{0,127}$`
+const gIdemCodeRegexpTpl = `^[A-Za-z0-9_.-:]{0,127}$`
 
 var gIdemCodeRegexp = regexp.MustCompile(gIdemCodeRegexpTpl)
 

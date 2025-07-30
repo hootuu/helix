@@ -33,17 +33,24 @@ func (h *IndexSyncHandler) Action() []string {
 	return []string{"INSERT", "UPDATE", "DELETE"}
 }
 
+var gLogger = hlog.GetLogger("canal")
+
 func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 	var curAutoID int64
-	defer hlog.Elapse("canal.idx.sync",
-		hlog.F(zap.String("table", alter.Table), zap.String("action", alter.Action)),
-		func() []zap.Field {
-			arr := []zap.Field{zap.Int64("lstAutoID", curAutoID)}
-			if err != nil {
-				arr = append(arr, zap.Error(err))
-			}
-			return arr
-		})()
+	defer func() {
+		if err != nil {
+			gLogger.Error("canal.idx.sync",
+				zap.Int64("lstAutoID", curAutoID),
+				zap.String("table", alter.Table),
+				zap.String("action", alter.Action),
+				zap.Error(err))
+		} else {
+			gLogger.Info("canal.idx.sync",
+				zap.Int64("lstAutoID", curAutoID),
+				zap.String("table", alter.Table),
+				zap.String("action", alter.Action))
+		}
+	}()
 	if len(alter.Entities) == 0 {
 		return nil
 	}
