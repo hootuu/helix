@@ -7,6 +7,7 @@ import (
 	"github.com/hootuu/helix/unicom/hmq/hmq"
 	"github.com/hootuu/hyle/data/hjson"
 	"github.com/hootuu/hyle/hlog"
+	"go.uber.org/zap"
 )
 
 const (
@@ -32,6 +33,9 @@ func onMqJobHandlerFunc(ctx context.Context, job *Job) error {
 		hlog.TraceFix("ticktock: the mq.payload is empty", ctx, fmt.Errorf("empty mq payload"))
 		return nil
 	}
+	hlog.Info("onMqJobHandlerFunc", hlog.TraceInfo(ctx),
+		zap.Any("topic", payload.Topic),
+		zap.String("payload", string(payload.Payload)))
 	zplt.HelixMqMustPublish(payload.Topic, payload.Payload)
 	return nil
 }

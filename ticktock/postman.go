@@ -100,8 +100,10 @@ func (p *Postman) Send(ctx context.Context, job JobDefinable) (err error) {
 			return err
 		}
 		if job.GetType() == MqTaskType {
+			hlog.Info(fmt.Sprintf("nextTime: %s", nextTime.Format("2006-01-02 15:04:05")),
+				hlog.TraceInfo(ctx), zap.String("job_type", job.GetType()))
 			LocalSchedule(nextTime, func() {
-				_ = onMqJobHandlerFunc(ctx, &Job{
+				err = onMqJobHandlerFunc(ctx, &Job{
 					Type:    MqTaskType,
 					Payload: job.GetPayload(),
 				})
