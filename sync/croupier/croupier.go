@@ -24,6 +24,20 @@ func Light(uniLink collar.Collar) *Croupier {
 	return &Croupier{id: id, link: uniLink}
 }
 
+func (c *Croupier) GetRemaining(ctx context.Context) (int64, error) {
+	tokenM, err := hdb.Get[TokenM](zplt.HelixPgCtx(ctx), "id = ?", c.id)
+	if err != nil {
+		hlog.TraceErr("croupier.GetRemaining: hdb.Get failed", ctx, err,
+			zap.String("collar", c.link.ToString()),
+			zap.String("id", c.id))
+		return 0, err
+	}
+	if tokenM == nil {
+		return 0, nil
+	}
+	return tokenM.Remainder, nil
+}
+
 func (c *Croupier) Publish(
 	ctx context.Context,
 	bucket int64,
