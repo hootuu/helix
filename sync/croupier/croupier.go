@@ -162,6 +162,7 @@ func (c *Croupier) doAllowInLock(call func() error) (bool, error) {
 	}
 	err = call()
 	if err != nil {
+		hlog.TraceErr("croupier.doAllowInLock: call failed", nil, err)
 		//reback the bucket
 		innerErr := hdb.Update[TokenM](
 			zplt.HelixDB().DB(),
