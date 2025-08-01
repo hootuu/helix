@@ -16,7 +16,7 @@ var gDefTicktockWorker *ticktock.Worker
 
 func Ticktock() *ticktock.Worker {
 	tickTockRunning := hcfg.GetBool("helix.ticktock.running", true)
-	if tickTockRunning {
+	if !tickTockRunning {
 		return nil
 	}
 	if gDefTicktockWorker == nil {
