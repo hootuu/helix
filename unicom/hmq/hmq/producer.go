@@ -12,6 +12,19 @@ type ProducerCore interface {
 	Publish(topic Topic, payload Payload) error
 }
 
+type EmptyProducerCore struct{}
+
+func (e EmptyProducerCore) Startup() error {
+	return nil
+}
+
+func (e EmptyProducerCore) Shutdown() {
+}
+
+func (e EmptyProducerCore) Publish(_ Topic, _ Payload) error {
+	return nil
+}
+
 type Producer struct {
 	core ProducerCore
 }

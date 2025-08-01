@@ -4,8 +4,10 @@ import (
 	"github.com/hootuu/helix/helix"
 	"github.com/hootuu/helix/unicom/hmq/hmq"
 	"github.com/hootuu/helix/unicom/hmq/hnsq"
+	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
 	"github.com/hootuu/hyle/hretry"
+	"github.com/hootuu/hyle/hsys"
 	"go.uber.org/zap"
 	"sync"
 )
@@ -64,11 +66,16 @@ func HelixMqMustPublish(topic hmq.Topic, payload hmq.Payload) {
 
 func init() {
 	helix.AfterStartup(func() {
+		mqRunning := hcfg.GetBool("helix.mq.running", true)
+		if !mqRunning {
+			gMQ = hmq.NewMQ(helixMainMQ, hmq.NewEmptyMQ())
+			return
+		}
 		gMQ = hmq.NewMQ(helixMainMQ, hnsq.NewNsqMQ())
 		gMqProducer = gMQ.NewProducer()
 		err := gMQ.RegisterProducer(gMqProducer)
 		if err != nil {
-
+			hsys.Exit(err)
 		}
 	})
 }

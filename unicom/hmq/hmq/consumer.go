@@ -14,6 +14,16 @@ type ConsumerCore interface {
 	Shutdown(ctx context.Context)
 }
 
+type EmptyConsumerCore struct{}
+
+func (e EmptyConsumerCore) Startup(_ *Consumer) (context.Context, error) {
+	return nil, nil
+}
+
+func (e EmptyConsumerCore) Shutdown(_ context.Context) {
+
+}
+
 type Consumer struct {
 	code        string
 	topic       Topic

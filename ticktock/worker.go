@@ -132,13 +132,7 @@ func (w *Worker) onPeriodicJobHandlerFunc(ctx context.Context, job *Job) (err er
 			ctx, fmt.Errorf("ticktock: the PeriodicJobPayload should not be nil"))
 		return nil
 	}
-	fmt.Println(">>>[IN]", "[",
-		time.Now().Format("2006-01-02 15:04:05"), "]",
-		job.Type,
-		periodicJobPayload.Sequence,
-		periodicJobPayload.Type,
-		periodicJobPayload.JobTplID,
-	)
+
 	if job.Type == MqTaskType {
 		nxtTime, err := periodicJobPayload.Expression.Next(periodicJobPayload.Current)
 		if err != nil {
@@ -167,6 +161,12 @@ func (w *Worker) onPeriodicJobHandlerFunc(ctx context.Context, job *Job) (err er
 }
 
 func (w *Worker) doStartup() (context.Context, error) {
+	// todo will change for service dep
+	tickTockRunning := hcfg.GetBool("helix.ticktock.running", true)
+	if !tickTockRunning {
+		return nil, nil
+	}
+
 	var err error
 	go func() {
 		if err = w.srv.Run(w.srvMux); err != nil {
@@ -177,6 +177,11 @@ func (w *Worker) doStartup() (context.Context, error) {
 }
 
 func (w *Worker) doShutdown(_ context.Context) {
+	// todo will change for service dep
+	tickTockRunning := hcfg.GetBool("helix.ticktock.running", true)
+	if !tickTockRunning {
+		return
+	}
 	if w.stopFunc != nil {
 		w.stopFunc()
 	}

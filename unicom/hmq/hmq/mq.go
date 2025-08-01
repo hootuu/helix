@@ -16,6 +16,28 @@ type Core interface {
 	NewConsumer() ConsumerCore
 }
 
+type EmptyCore struct {
+}
+
+func NewEmptyMQ() Core {
+	return &EmptyCore{}
+}
+
+func (e EmptyCore) Startup(_ *MQ) (context.Context, error) {
+	return nil, nil
+}
+
+func (e EmptyCore) Shutdown(_ context.Context) {
+}
+
+func (e EmptyCore) NewProducer() ProducerCore {
+	return &EmptyProducerCore{}
+}
+
+func (e EmptyCore) NewConsumer() ConsumerCore {
+	return &EmptyConsumerCore{}
+}
+
 type MQ struct {
 	Code        string
 	core        Core

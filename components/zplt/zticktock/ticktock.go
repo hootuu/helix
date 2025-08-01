@@ -4,7 +4,6 @@ import (
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/helix"
 	"github.com/hootuu/helix/ticktock"
-	"github.com/hootuu/hyle/hcfg"
 )
 
 const (
@@ -15,10 +14,6 @@ const (
 var gDefTicktockWorker *ticktock.Worker
 
 func Ticktock() *ticktock.Worker {
-	tickTockRunning := hcfg.GetBool("helix.ticktock.running", true)
-	if !tickTockRunning {
-		return nil
-	}
 	if gDefTicktockWorker == nil {
 		helix.OnceLoad(defTicktockWorker, func() {
 			gDefTicktockWorker = ticktock.NewWorker(defTicktockWorker, zplt.HelixRdsCache())
