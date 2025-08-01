@@ -98,10 +98,16 @@ func (w *Worker) GetCode() string {
 }
 
 func (w *Worker) RegisterJobHandler(pattern string, handler JobHandler) {
+	if w.srvMux == nil {
+		return
+	}
 	w.srvMux.Handle(pattern, newAsyncHandlerWrapper(handler))
 }
 
 func (w *Worker) RegisterJobHandlerFunc(pattern string, handlerFunc JobHandlerFunc) {
+	if w.srvMux == nil {
+		return
+	}
 	w.srvMux.HandleFunc(pattern, asynqHandleFuncWrapper(handlerFunc))
 }
 
