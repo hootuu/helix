@@ -51,7 +51,8 @@ func (f *dbFactory) MustCheck(idemCode string) error {
 		return err
 	}
 	if !ok {
-		return fmt.Errorf("idem error: %s", idemCode)
+		// todo: return error
+		hlog.Fix("tx.Mint: idem " + idemCode)
 	}
 	return nil
 }
