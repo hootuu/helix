@@ -11,6 +11,18 @@ import (
 )
 
 func main() {
+	now := time.Now()
+	ticktock.LocalSchedule(
+		now.Add(10*time.Second), func() {
+			fmt.Println("ticktock do do do: ",
+				now.Format("2006-01-02 15:04:05"),
+				" - ",
+				time.Now().Format("2006-01-02 15:04:05"))
+		})
+	time.Sleep(time.Hour)
+}
+
+func main2() {
 	helix.AfterStartup(func() {
 		worker := ticktock.NewWorker("main_tt", zplt.HelixRdsCache())
 		worker.RegisterJobHandlerFunc("TIMEOUT", func(ctx context.Context, job *ticktock.Job) error {

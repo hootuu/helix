@@ -1,7 +1,6 @@
 package hcanal
 
 import (
-	"fmt"
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-mysql-org/go-mysql/mysql"
 	"github.com/go-mysql-org/go-mysql/replication"
@@ -15,7 +14,6 @@ import (
 )
 
 func (h *Canal) OnDDL(_ *replication.EventHeader, _ mysql.Position, queryEvent *replication.QueryEvent) error {
-	//fmt.Println("OnDDL----->>>>>>", string(queryEvent.Query))
 	if hsys.RunMode().IsProd() || hsys.RunMode().IsPre() {
 		return nil
 	}
@@ -51,7 +49,6 @@ func (h *Canal) OnDDL(_ *replication.EventHeader, _ mysql.Position, queryEvent *
 }
 
 func (h *Canal) OnRow(event *canal.RowsEvent) error {
-	//fmt.Println("OnRow", event.Action)
 	if len(event.Table.Columns) == 0 || len(event.Rows) == 0 {
 		hlog.Err("hcanal.OnRow: no columns or rows")
 		return nil
@@ -169,7 +166,6 @@ func analyseDropTableDDL(query string) (bool, []string) {
 			result = append(result, clean)
 		}
 	}
-	fmt.Println("drop table:::::", result) //todo
 
 	return true, result
 }
