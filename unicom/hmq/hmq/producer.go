@@ -14,14 +14,14 @@ type ProducerCore interface {
 
 type EmptyProducerCore struct{}
 
-func (e EmptyProducerCore) Startup() error {
+func (e *EmptyProducerCore) Startup() error {
 	return nil
 }
 
-func (e EmptyProducerCore) Shutdown() {
+func (e *EmptyProducerCore) Shutdown() {
 }
 
-func (e EmptyProducerCore) Publish(_ Topic, _ Payload) error {
+func (e *EmptyProducerCore) Publish(_ Topic, _ Payload) error {
 	return nil
 }
 

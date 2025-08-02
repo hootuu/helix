@@ -23,18 +23,18 @@ func NewEmptyMQ() Core {
 	return &EmptyCore{}
 }
 
-func (e EmptyCore) Startup(_ *MQ) (context.Context, error) {
+func (e *EmptyCore) Startup(_ *MQ) (context.Context, error) {
 	return nil, nil
 }
 
-func (e EmptyCore) Shutdown(_ context.Context) {
+func (e *EmptyCore) Shutdown(_ context.Context) {
 }
 
-func (e EmptyCore) NewProducer() ProducerCore {
+func (e *EmptyCore) NewProducer() ProducerCore {
 	return &EmptyProducerCore{}
 }
 
-func (e EmptyCore) NewConsumer() ConsumerCore {
+func (e *EmptyCore) NewConsumer() ConsumerCore {
 	return &EmptyConsumerCore{}
 }
 

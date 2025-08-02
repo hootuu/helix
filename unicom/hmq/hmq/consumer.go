@@ -16,11 +16,11 @@ type ConsumerCore interface {
 
 type EmptyConsumerCore struct{}
 
-func (e EmptyConsumerCore) Startup(_ *Consumer) (context.Context, error) {
+func (e *EmptyConsumerCore) Startup(_ *Consumer) (context.Context, error) {
 	return nil, nil
 }
 
-func (e EmptyConsumerCore) Shutdown(_ context.Context) {
+func (e *EmptyConsumerCore) Shutdown(_ context.Context) {
 
 }
 
