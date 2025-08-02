@@ -66,6 +66,7 @@ func HelixMqMustPublish(topic hmq.Topic, payload hmq.Payload) {
 
 func init() {
 	helix.AfterStartup(func() {
+		hlog.Info("MQ Init---------------------")
 		mqRunning := hcfg.GetBool("helix.mq.running", true)
 		if !mqRunning {
 			gMQ = hmq.NewMQ(helixMainMQ, hmq.NewEmptyMQ())
