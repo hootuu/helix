@@ -73,13 +73,15 @@ func (h *Canal) OnRow(event *canal.RowsEvent) error {
 		Action:   event.Action,
 		Entities: nil,
 	}
-	var autoIdIdx, timestampIdx int
+	var autoIdIdx, timestampIdx, deletedIdx int
 	for i, col := range event.Table.Columns {
 		switch col.Name {
 		case "auto_id":
 			autoIdIdx = i
 		case "updated_at":
 			timestampIdx = i
+		case "deleted_at":
+			deletedIdx = i
 		default:
 			continue
 		}
@@ -91,6 +93,12 @@ func (h *Canal) OnRow(event *canal.RowsEvent) error {
 		}
 		if len(row) > timestampIdx && row[timestampIdx] != nil {
 			entity.Timestamp = cast.ToTime(row[timestampIdx]).UnixMilli()
+		}
+		if len(row) > deletedIdx && row[deletedIdx] != nil {
+			deletedAt := cast.ToTime(row[deletedIdx])
+			if !deletedAt.IsZero() {
+				alter.Action = "DELETE"
+			}
 		}
 		alter.Entities = append(alter.Entities, entity)
 	}

@@ -54,6 +54,7 @@ func (h *IndexSyncHandler) OnAlter(alter *Alter) (err error) {
 	if len(alter.Entities) == 0 {
 		return nil
 	}
+
 	if strings.EqualFold(alter.Action, "DELETE") {
 		var autoIDs []int64
 		for _, entity := range alter.Entities {
