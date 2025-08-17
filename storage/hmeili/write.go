@@ -86,7 +86,7 @@ func DelDocuments(meili *Meili, indexer Indexer, autoIDs []int64) error {
 	index := meili.Meili().Index(indexer.GetName())
 	var task *meilisearch.TaskInfo = nil
 	hretry.Universal(func() error {
-		theTask, err := index.DeleteDocuments(filter)
+		theTask, err := index.DeleteDocumentsByFilter(filter)
 		if err != nil {
 			hlog.Err("hmeili.DelDocuments", zap.Error(err))
 			return err
