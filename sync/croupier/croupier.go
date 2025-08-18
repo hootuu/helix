@@ -178,14 +178,7 @@ func (c *Croupier) doAllowInLock(call func() error) (bool, error) {
 	if err != nil {
 		hlog.TraceErr("croupier.doAllowInLock: call failed", nil, err)
 		//reback the bucket
-		innerErr := hdb.Update[TokenM](
-			zplt.HelixDB().DB(),
-			map[string]any{
-				"remainder": gorm.Expr("remainder + 1"),
-			},
-			"id = ? AND remainder < ?",
-			c.id, gorm.Expr("bucket"),
-		)
+		innerErr := c.ResetRemainder()
 		if innerErr != nil {
 			return false, innerErr
 		}
@@ -199,4 +192,16 @@ func (c *Croupier) getInitLockKey() string {
 }
 func (c *Croupier) getEachLockKey() string {
 	return fmt.Sprintf("helix_croupier:each:%s", c.id)
+}
+
+func (c *Croupier) ResetRemainder() error {
+	innerErr := hdb.Update[TokenM](
+		zplt.HelixDB().DB(),
+		map[string]any{
+			"remainder": gorm.Expr("remainder + 1"),
+		},
+		"id = ? AND remainder < ?",
+		c.id, gorm.Expr("bucket"),
+	)
+	return innerErr
 }
