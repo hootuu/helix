@@ -6,6 +6,8 @@ type ID = htree.ID
 
 const Root ID = 0
 
+const NilID ID = -1
+
 type Channel struct {
 	ID        ID         `json:"id"`
 	Name      string     `json:"name"`
