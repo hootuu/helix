@@ -9,6 +9,11 @@ import (
 
 type SearchRequest = meilisearch.SearchRequest
 
+type SearchAttr struct {
+	Attr string
+	Val  string
+}
+
 type Indexer interface {
 	GetName() string
 	GetVersion() string
