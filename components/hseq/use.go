@@ -48,7 +48,7 @@ func Next(ctx context.Context, biz collar.Collar) (ID, error) {
 		}
 		nxtID = seqM.Seq + 1
 		return nil
-	}, 3*time.Second)
+	}, 30*time.Second)
 	if err != nil {
 		return 0, err
 	}
