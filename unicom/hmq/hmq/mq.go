@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/hootuu/helix/helix"
+	"github.com/hootuu/hyle/hcfg"
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"sync"
@@ -95,6 +96,11 @@ func (mq *MQ) RegisterProducer(p *Producer) error {
 }
 
 func (mq *MQ) RegisterConsumer(c *Consumer) error {
+	mqRegister := hcfg.GetBool("helix.mq.register", true)
+	if !mqRegister {
+		hlog.Info("hmq.RegisterConsumer", zap.String("code", c.code), zap.String("topic", string(c.topic)), zap.String("channel", string(c.channel)), zap.String("msg", "mq register disabled"))
+		return nil
+	}
 	err := c.startup()
 	if err != nil {
 		hlog.Err("hmq.RegisterConsumer", zap.Error(err))
