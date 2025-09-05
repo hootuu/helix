@@ -3,6 +3,9 @@ package hvault
 import (
 	"bytes"
 	"errors"
+	"sync"
+	"time"
+
 	"github.com/hootuu/helix/components/zplt"
 	"github.com/hootuu/helix/storage/hdb"
 	"github.com/hootuu/hyle/crypto/haes"
@@ -11,8 +14,6 @@ import (
 	"github.com/hootuu/hyle/hlog"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"sync"
-	"time"
 )
 
 const (
@@ -84,6 +85,9 @@ func doDecrypt(src []byte) ([]byte, error) {
 
 	var willUsePriKey []byte
 	for _, wrap := range gBuf {
+		if wrap == nil {
+			continue
+		}
 		if bytes.Equal(wrap.idx, idxBytes) {
 			willUsePriKey = wrap.key
 		}
