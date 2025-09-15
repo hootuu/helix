@@ -71,7 +71,7 @@ func (h *Canal) OnRow(event *canal.RowsEvent) error {
 	alter := &Alter{
 		Table:    event.Table.Name,
 		Action:   event.Action,
-		Entities: nil,
+		Entities: make([]*Entity, 0, len(event.Rows)),
 	}
 	var autoIdIdx, timestampIdx, deletedIdx int
 	for i, col := range event.Table.Columns {
