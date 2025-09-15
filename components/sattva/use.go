@@ -25,6 +25,7 @@ func init() {
 		RegisterBuilder(Password, channel.NewPwdBuilder())
 		RegisterBuilder(Mobile, channel.NewMobileBuilder())
 		RegisterBuilder(DeviceID, channel.NewDeviceBuilder())
+		RegisterBuilder(WeChat, channel.NewWechatBuilder())
 
 		var err error
 		err = zplt.HelixPgDB().PG().AutoMigrate(
