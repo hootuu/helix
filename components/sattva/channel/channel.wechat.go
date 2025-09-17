@@ -13,7 +13,7 @@ import (
 
 const (
 	OpenIDKey        = "openid"
-	gOpenIDRegexpTpl = `^[A-Za-z0-9]{6,64}$`
+	gOpenIDRegexpTpl = `^[0-9A-Za-z_-]{28}$`
 )
 
 type WechatBuilder struct {
