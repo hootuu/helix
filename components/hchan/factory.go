@@ -157,6 +157,14 @@ func (f *Factory) SetSeq(id ID, seq int) error {
 	return nil
 }
 
+func (f *Factory) MustGet(id ID) (*Channel, error) {
+	dbM, err := hdb.MustGet[ChanM](f.table(), "id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	return dbM.To(), nil
+}
+
 func (f *Factory) GetChildren(parent ID, deep int) ([]*Channel, error) {
 	if deep < 1 || deep > f.tree.Factory().IdDeep() {
 		return nil, fmt.Errorf("invalid deep: %d", deep)
