@@ -38,7 +38,7 @@ func NewWorker(code string, cache *hrds.Cache) *Worker {
 			BaseContext: func() context.Context {
 				return w.baseCtx
 			},
-			TaskCheckInterval: hcfg.GetDuration(w.cKey("task.check.interval"), 5*time.Second),
+			TaskCheckInterval: hcfg.GetDuration(w.cKey("task.check.interval"), 2*time.Second),
 			RetryDelayFunc: func(n int, e error, t *asynq.Task) time.Duration {
 				switch n {
 				case 1:
