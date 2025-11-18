@@ -58,6 +58,59 @@ func (l *Locker) Lock(
 	return true, nil
 }
 
+func (l *Locker) LockWait(
+	ctx context.Context,
+	key string,
+	call func() error,
+	ttl time.Duration,
+	waitTimeout time.Duration,
+	retryInterval time.Duration,
+) (bool, error) {
+	rds := l.cache.Redis()
+
+	lockKey := fmt.Sprintf("HLOCK:LOCK:%s", key)
+	token := fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Intn(1000))
+
+	deadline := time.Now().Add(waitTimeout)
+
+	for {
+		locked, err := rds.SetNX(ctx, lockKey, token, ttl).Result()
+		if err != nil {
+			hlog.Err("hlock.LockWait: SetNX error",
+				zap.String("key", key),
+				zap.Error(err),
+			)
+			return false, err
+		}
+
+		if locked {
+			defer func() {
+				l.release(ctx, lockKey, token)
+			}()
+
+			err = call()
+			if err != nil {
+				return false, err
+			}
+			return true, nil
+		}
+
+		if time.Now().After(deadline) {
+			hlog.Info("hlock.LockWait: timeout waiting for lock",
+				zap.String("key", key),
+			)
+			return false, fmt.Errorf("lock wait timeout for key=%s", key)
+		}
+
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-time.After(retryInterval + time.Duration(rand.Intn(50))*time.Millisecond):
+			continue
+		}
+	}
+}
+
 func (l *Locker) OnceLock(
 	ctx context.Context,
 	key string,
@@ -91,7 +144,7 @@ func (l *Locker) OnceLock(
 		l.release(ctx, lockKey, token)
 	}()
 
-	if isDone, _ := rds.Get(ctx, key).Result(); isDone == "1" {
+	if isDone, _ := rds.Get(ctx, taskStatusKey).Result(); isDone == "1" {
 		return true, nil
 	}
 
