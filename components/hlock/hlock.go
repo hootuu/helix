@@ -58,6 +58,21 @@ func (l *Locker) Lock(
 	return true, nil
 }
 
+func (l *Locker) LockWaitDef(
+	ctx context.Context,
+	key string,
+	call func() error,
+) (bool, error) {
+	return l.LockWait(
+		ctx,
+		key,
+		call,
+		8*time.Second,
+		5*time.Second,
+		120*time.Millisecond,
+	)
+}
+
 func (l *Locker) LockWait(
 	ctx context.Context,
 	key string,
