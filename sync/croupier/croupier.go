@@ -126,11 +126,14 @@ func (c *Croupier) Link() collar.Collar {
 	return c.link
 }
 
-func (c *Croupier) Allow(ctx context.Context, call func() error) (allow bool, err error) {
+func (c *Croupier) Allow(ctx context.Context, call func() error, count uint32) (allow bool, err error) {
+	if count == 0 {
+		return false, nil
+	}
 	if hlog.IsElapseFunction() {
 		defer hlog.ElapseWithCtx(ctx,
 			fmt.Sprintf("helix.croupier[%s]", c.link),
-			hlog.F(zap.String("id", c.id)),
+			hlog.F(zap.String("id", c.id), zap.Uint32("count", count)),
 			func() []zap.Field {
 				if err != nil {
 					return []zap.Field{zap.Error(err)}
@@ -143,7 +146,7 @@ func (c *Croupier) Allow(ctx context.Context, call func() error) (allow bool, er
 	bLockDo, err := hlock.Light().Lock(ctx,
 		c.getEachLockKey(),
 		func() error {
-			allow, err = c.doAllowInLock(ctx, call)
+			allow, err = c.doAllowInLock(ctx, call, count)
 			if err != nil {
 				return err
 			}
@@ -159,14 +162,14 @@ func (c *Croupier) Allow(ctx context.Context, call func() error) (allow bool, er
 	return allow, nil
 }
 
-func (c *Croupier) doAllowInLock(ctx context.Context, call func() error) (bool, error) {
+func (c *Croupier) doAllowInLock(ctx context.Context, call func() error, count uint32) (bool, error) {
 	rows, err := hdb.UpdateX[TokenM](
 		zplt.HelixDB().DB(),
 		map[string]any{
-			"remainder": gorm.Expr("remainder - 1"),
+			"remainder": gorm.Expr("remainder - ?", count),
 		},
-		"id = ? AND remainder > 0",
-		c.id,
+		"id = ? AND remainder >= ?",
+		c.id, count,
 	)
 	if err != nil {
 		return false, err
@@ -178,7 +181,7 @@ func (c *Croupier) doAllowInLock(ctx context.Context, call func() error) (bool, 
 	if err != nil {
 		hlog.TraceErr("croupier.doAllowInLock: call failed", nil, err)
 		//reback the bucket
-		innerErr := c.ResetRemainder(ctx)
+		innerErr := c.ResetRemainder(ctx, count)
 		if innerErr != nil {
 			return false, innerErr
 		}
@@ -194,11 +197,14 @@ func (c *Croupier) getEachLockKey() string {
 	return fmt.Sprintf("helix_croupier:each:%s", c.id)
 }
 
-func (c *Croupier) ResetRemainder(ctx context.Context) (err error) {
+func (c *Croupier) ResetRemainder(ctx context.Context, count uint32) (err error) {
+	if count == 0 {
+		return nil
+	}
 	if hlog.IsElapseFunction() {
 		defer hlog.ElapseWithCtx(ctx,
 			fmt.Sprintf("ResetRemainder[%s]", c.link),
-			hlog.F(zap.String("id", c.id)),
+			hlog.F(zap.String("id", c.id), zap.Uint32("count", count)),
 			func() []zap.Field {
 				if err != nil {
 					return []zap.Field{zap.Error(err)}
@@ -210,10 +216,10 @@ func (c *Croupier) ResetRemainder(ctx context.Context) (err error) {
 	rows, err := hdb.UpdateX[TokenM](
 		zplt.HelixDB().DB(),
 		map[string]any{
-			"remainder": gorm.Expr("remainder + 1"),
+			"remainder": gorm.Expr("remainder + ?", count),
 		},
-		"id = ? AND remainder < ?",
-		c.id, gorm.Expr("bucket"),
+		"id = ? AND remainder <= bucket - ?",
+		c.id, count,
 	)
 	if err != nil {
 		return err
